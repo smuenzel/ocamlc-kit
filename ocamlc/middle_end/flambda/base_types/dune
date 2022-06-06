@@ -1,0 +1,5 @@
+(library
+  (name middle_end_flambda_base_types)
+  (libraries compiler_lambda typing_types compiler_parsing identifiers middle_end_identifiers compiler_clambda)
+  (flags :standard -open Middle_end_identifiers -w -9)
+  )

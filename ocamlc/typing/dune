@@ -1,0 +1,7 @@
+(library
+   (name typing)
+   (wrapped false)
+   (libraries utils compiler_parsing typing_types cmi_format compiler_env compiler_typedtree cmt_format identifiers)
+   (flags :standard -w -9)
+   (modules_without_implementation annot)
+   )

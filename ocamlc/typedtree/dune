@@ -1,0 +1,6 @@
+(library
+   (name compiler_typedtree)
+   (wrapped false)
+   (libraries utils compiler_parsing typing_types cmi_format compiler_env identifiers)
+   (flags :standard -w -9)
+   )

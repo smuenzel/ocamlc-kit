@@ -1,0 +1,6 @@
+(library
+  (name arch_x86_shared)
+  (libraries utils asmcomp_lang asmcomp_platform_shared)
+  (flags :standard -open Asmcomp_platform_shared -w -9)
+  (modules_without_implementation x86_ast)
+  )

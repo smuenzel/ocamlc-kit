@@ -1,0 +1,6 @@
+(library
+  (name asmcomp_platform_shared)
+  (libraries compiler_lambda identifiers compiler_parsing asmcomp_lang)
+  (flags :standard -w -9)
+  (modules_without_implementation emitenv)
+  )

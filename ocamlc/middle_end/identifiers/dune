@@ -1,0 +1,5 @@
+(library
+  (name middle_end_identifiers)
+  (libraries utils identifiers compiler_lambda compiler_clambda)
+  (flags :standard -w -9)
+  )

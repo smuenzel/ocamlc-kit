@@ -1,0 +1,3 @@
+(rule (copy ../../hack/m.h m.h))
+(rule (copy ../../hack/s.h s.h))
+

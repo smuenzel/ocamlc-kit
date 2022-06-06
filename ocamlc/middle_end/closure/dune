@@ -1,0 +1,5 @@
+(library
+  (name middle_end_closure)
+  (libraries middle_end_shared compiler_lambda compiler_clambda compiler_parsing identifiers typing_types middle_end_identifiers compiler_env)
+  (flags :standard -open Middle_end_shared  -open Middle_end_identifiers -w -9)
+  )

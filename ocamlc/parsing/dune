@@ -43,6 +43,14 @@
    (with-stdout-to %{targets}
      (bash "cat %{dep} | sed 's/MenhirLib/CamlinternalMenhirLib/g'"))))
 
+(library
+   (name compiler_parsing)
+   (wrapped false)
+   (libraries utils identifiers)
+   (flags :standard -w -9)
+   (modules_without_implementation asttypes parsetree)
+   )
+
 (ocamllex
  (modules lexer)
  (mode fallback))

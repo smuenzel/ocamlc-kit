@@ -1,0 +1,6 @@
+(library
+  (name asmcomp_lang)
+  (wrapped false)
+  (libraries compiler_lambda identifiers compiler_parsing)
+  (flags :standard -w -9)
+  )

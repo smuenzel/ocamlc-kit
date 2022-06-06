@@ -12,10 +12,17 @@
 ;*                                                                        *
 ;**************************************************************************
 
+(library
+   (name compiler_lambda)
+   (wrapped false)
+   (libraries utils compiler_parsing typing_types cmi_format compiler_env typing compiler_typedtree identifiers)
+   (flags :standard -w -9)
+   )
+
 (rule
- (targets runtimedef.ml)
- (mode    fallback)
- (deps    (:fail (file ../runtime/caml/fail.h))
-          (:prim (file ../runtime/primitives)))
- (action  (with-stdout-to %{targets}
-            (run ./generate_runtimedef.sh %{fail} %{prim}))))
+  (target runtimedef.ml)
+  (deps    (:gen generate_runtimedef.sh)
+           (:fail (file ../runtime/caml/fail.h))
+           (:prim (file ../runtime/primitives)))
+  (action  (with-stdout-to %{target}
+                           (run %{gen} %{fail} %{prim}))))

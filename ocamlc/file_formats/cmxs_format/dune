@@ -1,0 +1,6 @@
+(library
+   (name cmxs_format)
+   (libraries utils compiler_parsing typing_types)
+   (flags :standard -w -9)
+   (modules_without_implementation cmxs_format)
+   )

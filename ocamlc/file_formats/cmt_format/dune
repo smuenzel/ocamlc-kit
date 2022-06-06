@@ -1,0 +1,5 @@
+(library
+   (name cmt_format)
+   (libraries utils compiler_parsing typing_types compiler_typedtree compiler_env identifiers)
+   (flags :standard -w -9)
+   )

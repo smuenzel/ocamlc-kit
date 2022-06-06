@@ -1,0 +1,7 @@
+(library
+  (name compiler_clambda)
+  (wrapped false)
+  (libraries compiler_parsing compiler_lambda identifiers typing_types)
+  (flags :standard -w -9)
+  )
+

@@ -1,0 +1,5 @@
+(library
+   (name cmi_format)
+   (libraries utils compiler_parsing typing_types identifiers)
+   (flags :standard -w -9)
+   )
