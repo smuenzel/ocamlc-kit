@@ -82,7 +82,7 @@ type fixed_row_case =
 type 'variety variant =
   (* Common *)
   | Incompatible_types_for : string -> _ variant
-  | No_tags : position * (Asttypes.label * row_field) list -> _ variant
+  | No_tags : position * (Label.t * row_field) list -> _ variant
   (* Unification *)
   | No_intersection : unification variant
   | Fixed_row :

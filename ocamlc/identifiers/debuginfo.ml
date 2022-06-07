@@ -64,7 +64,7 @@ module Scoped_location = struct
   let enter_class_definition ~scopes id =
     cons Sc_class_definition (dot scopes (Ident.name id))
 
-  let enter_method_definition ~scopes (s : Asttypes.label) =
+  let enter_method_definition ~scopes (s : Label.t) =
     let str =
       match scopes with
       | Cons {item = Sc_class_definition; _} -> dot ~sep:"#" scopes s

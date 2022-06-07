@@ -22,7 +22,7 @@ module Scoped_location : sig
   val enter_value_definition : scopes:scopes -> Ident.t -> scopes
   val enter_module_definition : scopes:scopes -> Ident.t -> scopes
   val enter_class_definition : scopes:scopes -> Ident.t -> scopes
-  val enter_method_definition : scopes:scopes -> Asttypes.label -> scopes
+  val enter_method_definition : scopes:scopes -> Label.t -> scopes
 
   type t =
     | Loc_unknown
