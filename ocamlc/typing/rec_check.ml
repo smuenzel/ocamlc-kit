@@ -586,14 +586,14 @@ let rec expression : Typedtree.expression -> term_judg =
       list expression exprs << Guard
     | Texp_array exprs ->
       let array_mode = match Typeopt.array_kind exp with
-        | Lambda.Pfloatarray ->
+        | Pfloatarray ->
             (* (flat) float arrays unbox their elements *)
             Dereference
-        | Lambda.Pgenarray ->
+        | Pgenarray ->
             (* This is counted as a use, because constructing a generic array
                involves inspecting to decide whether to unbox (PR#6939). *)
             Dereference
-        | Lambda.Paddrarray | Lambda.Pintarray ->
+        | Paddrarray | Pintarray ->
             (* non-generic, non-float arrays act as constructors *)
             Guard
       in

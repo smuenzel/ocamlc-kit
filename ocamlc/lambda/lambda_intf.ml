@@ -15,7 +15,6 @@
 
 (* The "lambda" intermediate code *)
 
-open Sexplib.Std
 open Asttypes
 
 module T = struct

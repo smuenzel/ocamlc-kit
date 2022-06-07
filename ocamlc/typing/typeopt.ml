@@ -19,7 +19,7 @@ open Path
 open Types
 open Asttypes
 open Typedtree
-open Lambda
+open Type_based_optimization
 
 let scrape_ty env ty =
   match get_desc ty with
