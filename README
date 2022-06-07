@@ -1,0 +1,1 @@
+ocamlc-kit is https://github.com/ocaml/ocaml/ modified to be easy to use in a library in order to experiment with new techniques for the ocaml compiler
