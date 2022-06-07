@@ -1924,16 +1924,18 @@ let inline_lazy_force_cond arg loc =
           tag,
           Lprim (Pccall prim_obj_tag, [ varg ], loc),
           Lifthenelse
-            ( (* if (tag == Obj.forward_tag) then varg.(0) else ... *)
-              test_tag Obj.forward_tag,
+            ( (* if (tag == Tag_values.forward_tag) then varg.(0) else ... *)
+              test_tag Tag_values.forward_tag,
               Lprim (Pfield (0, Pointer, Mutable), [ varg ], loc),
               Lifthenelse
                 (
-                  (* ... if tag == Obj.lazy_tag || tag == Obj.forcing_tag then
+                  (* ... if tag == Tag_values.lazy_tag || tag == Tag_values.forcing_tag then
                          Lazy.force varg
                        else ... *)
                   Lprim (Psequor,
-                       [test_tag Obj.lazy_tag; test_tag Obj.forcing_tag], loc),
+                         [ test_tag Tag_values.lazy_tag
+                         ; test_tag Tag_values.forcing_tag]
+                        , loc),
                   call_force_lazy_block varg loc,
                   (* ... arg *)
                   varg ) ) ) )
@@ -1956,10 +1958,10 @@ let inline_lazy_force_switch arg loc =
                 sw_numconsts = 256;
                 (* PR#6033 - tag ranges from 0 to 255 *)
                 sw_consts =
-                  [ (Obj.forward_tag, Lprim (Pfield(0, Pointer, Mutable),
+                  [ (Tag_values.forward_tag, Lprim (Pfield(0, Pointer, Mutable),
                                              [ varg ], loc));
-                    (Obj.lazy_tag, call_force_lazy_block varg loc);
-                    (Obj.forcing_tag, call_force_lazy_block varg loc)
+                    (Tag_values.lazy_tag, call_force_lazy_block varg loc);
+                    (Tag_values.forcing_tag, call_force_lazy_block varg loc)
                   ];
                 sw_failaction = Some varg
               },

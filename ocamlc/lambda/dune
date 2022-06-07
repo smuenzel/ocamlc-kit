@@ -15,7 +15,16 @@
 (library
    (name compiler_lambda)
    (wrapped false)
-   (libraries utils compiler_parsing typing_types cmi_format compiler_env typing compiler_typedtree identifiers)
+   (libraries
+     utils
+     compiler_parsing
+     typing_types
+     cmi_format
+     compiler_env
+     typing
+     compiler_typedtree
+     identifiers
+     tag_values)
    (flags :standard -w -9)
    )
 

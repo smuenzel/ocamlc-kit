@@ -1,0 +1,4 @@
+(library
+   (name tag_values)
+   (libraries)
+   )
