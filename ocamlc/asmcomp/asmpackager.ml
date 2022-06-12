@@ -79,8 +79,10 @@ let check_units members =
 
 (* Make the .o file for the package *)
 
-let make_package_object ~ppf_dump members targetobj targetname coercion
-      ~backend =
+let make_package_object
+    platform
+    ~ppf_dump members targetobj targetname coercion
+    ~backend =
   Profile.record_call (Printf.sprintf "pack(%s)" targetname) (fun () ->
     let objtemp =
       if !Clflags.keep_asm_file
@@ -131,7 +133,9 @@ let make_package_object ~ppf_dump members targetobj targetname coercion
         in
         program, Closure_middle_end.lambda_to_clambda
     in
-    Asmgen.compile_implementation ~backend
+    Asmgen.compile_implementation
+      platform
+      ~backend
       ~prefixname
       ~middle_end
       ~ppf_dump
@@ -237,20 +241,21 @@ let build_package_cmx members cmxfile =
 
 (* Make the .cmx and the .o for the package *)
 
-let package_object_files ~ppf_dump files targetcmx
-                         targetobj targetname coercion ~backend =
+let package_object_files
+    platform ~ppf_dump files targetcmx
+    targetobj targetname coercion ~backend =
   let pack_path =
     match !Clflags.for_package with
     | None -> targetname
     | Some p -> p ^ "." ^ targetname in
   let members = map_left_right (read_member_info pack_path) files in
   check_units members;
-  make_package_object ~ppf_dump members targetobj targetname coercion ~backend;
+  make_package_object platform ~ppf_dump members targetobj targetname coercion ~backend;
   build_package_cmx members targetcmx
 
 (* The entry point *)
 
-let package_files ~ppf_dump initial_env files targetcmx ~backend =
+let package_files platform ~ppf_dump initial_env files targetcmx ~backend =
   let files =
     List.map
       (fun f ->
@@ -268,7 +273,7 @@ let package_files ~ppf_dump initial_env files targetcmx ~backend =
   Misc.try_finally (fun () ->
       let coercion =
         Typemod.package_units initial_env files targetcmi targetname in
-      package_object_files ~ppf_dump files targetcmx targetobj targetname
+      package_object_files platform ~ppf_dump files targetcmx targetobj targetname
         coercion ~backend
     )
     ~exceptionally:(fun () -> remove_file targetcmx; remove_file targetobj)

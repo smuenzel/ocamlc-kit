@@ -16,7 +16,11 @@
 (* Translation from closed lambda to C-- *)
 
 val compunit
-   : Clambda.ulambda
+  : (module Platform_intf.S
+      with type Arch.addressing_mode = 'a
+       and type Arch.specific_operation = 's
+    )
+  -> Clambda.ulambda
     * Clambda.preallocated_block list
     * Clambda.preallocated_constant list
   -> Cmm.phrase list

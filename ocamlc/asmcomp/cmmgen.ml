@@ -18,7 +18,6 @@
 [@@@ocaml.warning "-40"]
 
 open Misc
-open Arch
 open Asttypes
 open Primitive
 open Types
@@ -31,7 +30,12 @@ module String = Misc.Stdlib.String
 module IntMap = Map.Make(Int)
 module V = Backend_var
 module VP = Backend_var.With_provenance
-open Cmm_helpers
+
+module Make(Platform : Platform_intf.S) = struct
+  module Cmm_helpers = Cmm_helpers.Make(Platform)
+  open Cmm_helpers
+  open Platform
+  open Arch
 
 (* Environments used for translation to Cmm. *)
 
@@ -856,7 +860,9 @@ and transl_prim_1 env p arg dbg =
       tag_int (bswap16 (ignore_high_bit_int (untag_int
         (transl env arg) dbg)) dbg) dbg
   | Pperform ->
-      let cont = make_alloc dbg Obj.cont_tag [int_const dbg 0] in
+      (* CR smuenzel: fix *)
+      let cont_tag = 245 in
+      let cont = make_alloc dbg cont_tag [int_const dbg 0] in
       Cop(Capply typ_val,
        [Cconst_symbol ("caml_perform", dbg); transl env arg; cont],
        dbg)
@@ -1510,9 +1516,20 @@ let transl_all_functions cont =
   in
   translated_functions @ cont
 
+end
+
 (* Translate a compilation unit *)
 
-let compunit (ulam, preallocated_blocks, constants) =
+let compunit
+    (type a s)
+    (module Platform : Platform_intf.S
+      with type Arch.addressing_mode = a
+       and type Arch.specific_operation = s
+    )
+    (ulam, preallocated_blocks, constants)
+  =
+  let module Cmmgen = Make(Platform) in
+  let open Cmmgen in
   assert (Cmmgen_state.no_more_functions ());
   let dbg = Debuginfo.none in
   Cmmgen_state.set_structured_constants constants;
@@ -1539,5 +1556,5 @@ let compunit (ulam, preallocated_blocks, constants) =
   let c2 = transl_clambda_constants constants c1 in
   let c3 = transl_all_functions c2 in
   Cmmgen_state.set_structured_constants [];
-  let c4 = emit_preallocated_blocks preallocated_blocks c3 in
+  let c4 = Cmm_helpers.emit_preallocated_blocks preallocated_blocks c3 in
   emit_cmm_data_items_for_constants c4

@@ -29,7 +29,7 @@ module type I = sig
           Cmm.expression
 end
 
-module Make(I:I) = struct
+module Make(Arch:Arch_intf.S)(I:I) = struct
 
 (* Debug *)
 

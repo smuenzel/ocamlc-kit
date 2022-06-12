@@ -25,7 +25,8 @@ type middle_end =
 
 (** Compile an implementation from Lambda using the given middle end. *)
 val compile_implementation
-   : ?toplevel:(string -> bool)
+  : (module Platform_intf.S with type Arch.addressing_mode = 'a and type Arch.specific_operation = 's)
+  -> ?toplevel:(string -> bool)
   -> backend:(module Backend_intf.S)
   -> prefixname:string
   -> middle_end:middle_end
@@ -33,11 +34,13 @@ val compile_implementation
   -> Lambda.program
   -> unit
 
-val compile_implementation_linear :
-    string -> progname:string -> unit
+val compile_implementation_linear
+  : (module Platform_intf.S with type Arch.addressing_mode = 'a and type Arch.specific_operation = 's)
+  -> string -> progname:string -> unit
 
-val compile_phrase :
-    ppf_dump:Format.formatter -> Cmm.phrase -> unit
+val compile_phrase
+  : (module Platform_intf.S with type Arch.addressing_mode = 'a and type Arch.specific_operation = 's)
+  -> ppf_dump:Format.formatter -> Cmm.phrase -> unit
 
 type error =
   | Assembler_error of string
@@ -48,9 +51,10 @@ exception Error of error
 val report_error: Format.formatter -> error -> unit
 
 val compile_unit
-   : output_prefix:string
-   -> asm_filename:string
-   -> keep_asm:bool
-   -> obj_filename:string
-   -> (unit -> unit)
-   -> unit
+  : (module Platform_intf.S with type Arch.addressing_mode = 'a and type Arch.specific_operation = 's)
+  -> output_prefix:string
+  -> asm_filename:string
+  -> keep_asm:bool
+  -> obj_filename:string
+  -> (unit -> unit)
+  -> unit

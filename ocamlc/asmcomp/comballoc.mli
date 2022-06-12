@@ -15,4 +15,7 @@
 
 (* Combine heap allocations occurring in the same basic block *)
 
-val fundecl: Mach.fundecl -> Mach.fundecl
+val fundecl
+  : size_addr:int
+  -> (('addressing_mode, 'specific_operation) Mach.fundecl as 'f)
+  -> 'f

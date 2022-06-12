@@ -17,7 +17,8 @@
    original compilation units as sub-modules. *)
 
 val package_files
-   : ppf_dump:Format.formatter
+  : (module Platform_intf.S with type Arch.addressing_mode = 'a and type Arch.specific_operation = 's)
+  -> ppf_dump:Format.formatter
   -> Env.t
   -> string list
   -> string

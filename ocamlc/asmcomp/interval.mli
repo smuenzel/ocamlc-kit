@@ -35,4 +35,9 @@ val all_fixed_intervals: unit -> t list
 val overlap: t -> t -> bool
 val is_live: t -> int -> bool
 val remove_expired_ranges: t -> int -> unit
-val build_intervals: Mach.fundecl -> unit
+val build_intervals
+  : (module Proc_intf.S
+      with type addressing_mode = 'addressing_mode
+       and type specific_operation = 'specific_operation)
+  -> ('addressing_mode, 'specific_operation) Mach.fundecl
+  -> unit

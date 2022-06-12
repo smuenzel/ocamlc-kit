@@ -28,7 +28,14 @@ module IntPairSet =
 open Reg
 open Mach
 
-let build_graph fundecl =
+let build_graph
+    (type a s)
+    (module Proc : Proc_intf.S
+      with type addressing_mode = a
+       and type specific_operation = s
+    )
+    fundecl
+  =
 
   (* The interference graph is represented in two ways:
      - by adjacency lists for each register

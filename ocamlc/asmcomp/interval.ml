@@ -102,13 +102,13 @@ let update_interval_position_by_instr intervals instr pos =
   update_interval_position_by_array intervals instr.res pos Result;
   update_interval_position_by_set intervals instr.live pos Live
 
-let insert_destroyed_at_oper intervals instr pos =
-  let destroyed = Proc.destroyed_at_oper instr.desc in
+let insert_destroyed_at_oper destroyed_at_oper intervals instr pos =
+  let destroyed = destroyed_at_oper instr.desc in
   if Array.length destroyed > 0 then
     update_interval_position_by_array intervals destroyed pos Result
 
-let insert_destroyed_at_raise intervals pos =
-  let destroyed = Proc.destroyed_at_raise in
+let insert_destroyed_at_raise destroyed_at_raise intervals pos =
+  let destroyed = destroyed_at_raise in
   if Array.length destroyed > 0 then
     update_interval_position_by_array intervals destroyed pos Result
 
@@ -116,7 +116,16 @@ let insert_destroyed_at_raise intervals pos =
    The intervals will be expanded by one step at the start and end
    of a basic block. *)
 
-let build_intervals fd =
+let build_intervals
+    (type a s)
+    (module Proc : Proc_intf.S
+      with type addressing_mode = a
+       and type specific_operation = s
+    )
+    fd
+  =
+  let insert_destroyed_at_oper = insert_destroyed_at_oper Proc.destroyed_at_oper in
+  let insert_destroyed_at_raise = insert_destroyed_at_raise Proc.destroyed_at_raise in
   let intervals = Array.init
                     (Reg.num_registers())
                     (fun _ -> {

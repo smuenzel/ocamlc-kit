@@ -211,8 +211,8 @@ let scan_file file tolink = match file with
 
 (* Second pass: generate the startup file and link it with everything else *)
 
-let force_linking_of_startup ~ppf_dump =
-  Asmgen.compile_phrase ~ppf_dump
+let force_linking_of_startup platform ~ppf_dump =
+  Asmgen.compile_phrase platform ~ppf_dump
     (Cmm.Cdata ([Cmm.Csymbol_address "caml_startup"]))
 
 let make_globals_map units_list ~crc_interfaces =
@@ -228,12 +228,23 @@ let make_globals_map units_list ~crc_interfaces =
       (name, intf, None, []) :: acc)
     crc_interfaces defined
 
-let make_startup_file ~ppf_dump units_list ~crc_interfaces =
-  let compile_phrase p = Asmgen.compile_phrase ~ppf_dump p in
+let make_startup_file
+    (type a s)
+    ((module Platform
+       : Platform_intf.S
+         with type Arch.addressing_mode = a
+          and type Arch.specific_operation = s)
+     as platform)
+    ~ppf_dump
+    units_list
+    ~crc_interfaces
+  =
+  let module Cmm_helpers = Cmm_helpers.Make(Platform) in
+  let compile_phrase p = Asmgen.compile_phrase platform ~ppf_dump p in
   Location.input_name := "caml_startup"; (* set name of "current" input *)
   Compilenv.reset "_startup";
   (* set the name of the "current" compunit *)
-  Emit.begin_assembly ();
+  Platform.Emit.begin_assembly ();
   let name_list =
     List.flatten (List.map (fun (info,_,_) -> info.ui_defines) units_list) in
   compile_phrase (Cmm_helpers.entry_point name_list);
@@ -254,14 +265,24 @@ let make_startup_file ~ppf_dump units_list ~crc_interfaces =
   let all_names = "_startup" :: "_system" :: name_list in
   compile_phrase (Cmm_helpers.frame_table all_names);
   if !Clflags.output_complete_object then
-    force_linking_of_startup ~ppf_dump;
-  Emit.end_assembly ()
+    force_linking_of_startup platform ~ppf_dump;
+  Platform.Emit.end_assembly ()
 
-let make_shared_startup_file ~ppf_dump units =
-  let compile_phrase p = Asmgen.compile_phrase ~ppf_dump p in
+let make_shared_startup_file
+    (type a s)
+    ((module Platform
+       : Platform_intf.S
+         with type Arch.addressing_mode = a
+          and type Arch.specific_operation = s)
+     as platform)
+    ~ppf_dump
+    units
+  =
+  let module Cmm_helpers = Cmm_helpers.Make(Platform) in
+  let compile_phrase p = Asmgen.compile_phrase platform ~ppf_dump p in
   Location.input_name := "caml_startup";
   Compilenv.reset "_shared_startup";
-  Emit.begin_assembly ();
+  Platform.Emit.begin_assembly ();
   List.iter compile_phrase
     (Cmm_helpers.generic_functions true (List.map fst units));
   compile_phrase (Cmm_helpers.plugin_header units);
@@ -269,17 +290,27 @@ let make_shared_startup_file ~ppf_dump units =
     (Cmm_helpers.global_table
        (List.map (fun (ui,_) -> ui.ui_symbol) units));
   if !Clflags.output_complete_object then
-    force_linking_of_startup ~ppf_dump;
+    force_linking_of_startup platform ~ppf_dump;
   (* this is to force a reference to all units, otherwise the linker
      might drop some of them (in case of libraries) *)
-  Emit.end_assembly ()
+  Platform.Emit.end_assembly ()
 
 let call_linker_shared file_list output_name =
   let exitcode = Ccomp.call_linker Ccomp.Dll output_name file_list "" in
   if not (exitcode = 0)
   then raise(Error(Linking_error exitcode))
 
-let link_shared ~ppf_dump objfiles output_name =
+let link_shared
+    (type a s)
+    ((module Platform
+       : Platform_intf.S
+         with type Arch.addressing_mode = a
+          and type Arch.specific_operation = s)
+     as platform)
+    ~ppf_dump
+    objfiles
+    output_name
+  =
   Profile.record_call output_name (fun () ->
     let obj_infos = List.map read_file objfiles in
     let units_tolink = List.fold_right scan_file obj_infos [] in
@@ -296,11 +327,11 @@ let link_shared ~ppf_dump objfiles output_name =
       then output_name ^ ".startup" ^ ext_asm
       else Filename.temp_file "camlstartup" ext_asm in
     let startup_obj = output_name ^ ".startup" ^ ext_obj in
-    Asmgen.compile_unit ~output_prefix:output_name
+    Asmgen.compile_unit platform ~output_prefix:output_name
       ~asm_filename:startup ~keep_asm:!Clflags.keep_startup_file
       ~obj_filename:startup_obj
       (fun () ->
-         make_shared_startup_file ~ppf_dump
+         make_shared_startup_file platform ~ppf_dump
            (List.map (fun (ui,_,crc) -> (ui,crc)) units_tolink)
       );
     call_linker_shared (startup_obj :: objfiles) output_name;
@@ -332,7 +363,17 @@ let call_linker file_list startup_file output_name =
 
 (* Main entry point *)
 
-let link ~ppf_dump objfiles output_name =
+let link
+    (type a s)
+    ((module Platform
+       : Platform_intf.S
+         with type Arch.addressing_mode = a
+          and type Arch.specific_operation = s)
+     as platform)
+    ~ppf_dump
+    objfiles
+    output_name
+  =
   Profile.record_call output_name (fun () ->
     let stdlib = "stdlib.cmxa" in
     let stdexit = "std_exit.cmx" in
@@ -359,10 +400,10 @@ let link ~ppf_dump objfiles output_name =
       then output_name ^ ".startup" ^ ext_asm
       else Filename.temp_file "camlstartup" ext_asm in
     let startup_obj = Filename.temp_file "camlstartup" ext_obj in
-    Asmgen.compile_unit ~output_prefix:output_name
+    Asmgen.compile_unit platform ~output_prefix:output_name
       ~asm_filename:startup ~keep_asm:!Clflags.keep_startup_file
       ~obj_filename:startup_obj
-      (fun () -> make_startup_file ~ppf_dump units_tolink ~crc_interfaces);
+      (fun () -> make_startup_file platform ~ppf_dump units_tolink ~crc_interfaces);
     Misc.try_finally
       (fun () ->
          call_linker (List.filter_map object_file_name_of_file obj_infos)

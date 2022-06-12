@@ -15,6 +15,6 @@
 
 (* Renaming of registers at reload points to split live ranges. *)
 
-val fundecl: Mach.fundecl -> Mach.fundecl
+val fundecl: (('addressing_mode, 'specific_operation) Mach.fundecl as 'f) -> 'f
 
 val reset : unit -> unit

@@ -27,13 +27,23 @@ end
 
 module Analyzer = Dataflow.Backward(Domain)
 
-let transfer i ~next ~exn =
+let transfer
+    (type a s)
+    (module Platform : Platform_intf.S
+      with type Arch.addressing_mode = a
+       and type Arch.specific_operation = s)
+    i
+    ~next
+    ~exn
+  =
+  let module Arch = Platform.Arch in
+  let module Proc = Platform.Proc in
   match i.desc with
   | Ireturn | Iop(Itailcall_ind) | Iop(Itailcall_imm _) ->
       i.live <- Reg.Set.empty; (* no regs are live across *)
       Reg.set_of_array i.arg
   | Iop op ->
-      if operation_is_pure op                 (* no side effects *)
+      if operation_is_pure Arch.operation_is_pure op (* no side effects *)
       && Reg.disjoint_set_array next i.res    (* results are not used after *)
       && not (Proc.regs_are_volatile i.arg)   (* no stack-like hard reg *)
       && not (Proc.regs_are_volatile i.res)   (*            is involved *)
@@ -49,7 +59,7 @@ let transfer i ~next ~exn =
              nearest enclosing try ... with.
              Hence, everything that must be live at the beginning of
              the exception handler must also be live across this instr. *)
-          if operation_can_raise op
+          if operation_can_raise Arch.operation_can_raise op
           then Reg.Set.union across1 exn
           else across1 in
         i.live <- across;
@@ -66,15 +76,32 @@ let transfer i ~next ~exn =
       i.live <- exn;
       Reg.add_set_array exn i.arg
 
-let exnhandler before_handler =
-  Reg.Set.remove Proc.loc_exn_bucket before_handler
+let exnhandler 
+    (type a s)
+    (module Platform : Platform_intf.S
+      with type Arch.addressing_mode = a
+       and type Arch.specific_operation = s)
+    before_handler
+  =
+  Reg.Set.remove Platform.Proc.loc_exn_bucket before_handler
 
-let fundecl f =
+let fundecl
+    (type a s)
+    ((module Platform : Platform_intf.S
+       with type Arch.addressing_mode = a
+        and type Arch.specific_operation = s)
+     as platform
+    )
+    f
+  =
+  let exnhandler = exnhandler platform in
+  let transfer = transfer platform in
   let (initially_live, _) =
     Analyzer.analyze ~exnhandler ~transfer f.fun_body in
   (* Sanity check: only function parameters can be live at entrypoint *)
   let wrong_live = Reg.Set.diff initially_live (Reg.set_of_array f.fun_args) in
   if not (Reg.Set.is_empty wrong_live) then begin
+    let module Printmach = Printmach.Make(Platform) in
     Misc.fatal_errorf "@[Liveness.fundecl:@\n%a@]"
       Printmach.regset wrong_live
   end

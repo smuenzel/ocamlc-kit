@@ -16,4 +16,8 @@
 (* Dead code elimination: remove pure instructions whose results are
    not used. *)
 
-val fundecl: Mach.fundecl -> Mach.fundecl
+val fundecl
+  :  operation_is_pure:('specific_operation -> bool)
+  -> regs_are_volatile:(Reg.t array -> bool)
+  -> (('addressing_mode, 'specific_operation) Mach.fundecl as 'f)
+  -> 'f

@@ -18,5 +18,16 @@
 open Format
 open Linear
 
-val instr: formatter -> instruction -> unit
-val fundecl: formatter -> fundecl -> unit
+module type S = sig
+  type addressing_mode
+  type specific_operation
+  module Printmach : Printmach.S
+    with type addressing_mode = addressing_mode
+     and type specific_operation = specific_operation
+  val instr: formatter -> (addressing_mode, specific_operation) instruction -> unit
+  val fundecl: formatter -> (addressing_mode, specific_operation) fundecl -> unit
+end
+
+module Make(Platform : Platform_intf.S)
+  : S with type addressing_mode = Platform.Arch.addressing_mode
+       and type specific_operation = Platform.Arch.specific_operation

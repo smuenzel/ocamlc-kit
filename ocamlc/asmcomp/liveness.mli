@@ -16,4 +16,8 @@
 (* Liveness analysis.
    Annotate mach code with the set of regs live at each point. *)
 
-val fundecl: Mach.fundecl -> unit
+val fundecl
+  : (module Platform_intf.S
+      with type Arch.addressing_mode = 'a and type Arch.specific_operation = 's)
+  -> ('a, 's) Mach.fundecl
+  -> unit

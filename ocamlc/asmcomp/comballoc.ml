@@ -26,7 +26,7 @@ type allocation_state =
     No_alloc
   | Pending_alloc of pending_alloc
 
-let rec combine i allocstate =
+let rec combine ~size_addr i allocstate =
   match i.desc with
     Iend | Ireturn | Iexit _ | Iraise _ ->
       (i, allocstate)
@@ -34,9 +34,9 @@ let rec combine i allocstate =
       assert (List.length dbginfo = 1);
       begin match allocstate with
       | Pending_alloc {reg; dbginfos; totalsz}
-          when totalsz + sz <= (Config.max_young_wosize + 1) * Arch.size_addr ->
+          when totalsz + sz <= (Config.max_young_wosize + 1) * size_addr ->
           let (next, state) =
-           combine i.next
+           combine ~size_addr i.next
              (Pending_alloc { reg = i.res.(0);
                               dbginfos = dbginfo @ dbginfos;
                               totalsz = totalsz + sz }) in
@@ -45,7 +45,7 @@ let rec combine i allocstate =
            state)
       | No_alloc | Pending_alloc _ ->
          let (next, state) =
-           combine i.next
+           combine ~size_addr i.next
              (Pending_alloc { reg = i.res.(0);
                               dbginfos = dbginfo;
                               totalsz = sz }) in
@@ -64,38 +64,38 @@ let rec combine i allocstate =
       end
   | Iop(Icall_ind | Icall_imm _ | Iextcall _ |
         Itailcall_ind | Itailcall_imm _ | Ipoll _) ->
-      let newnext = combine_restart i.next in
+      let newnext = combine_restart ~size_addr i.next in
       (instr_cons_debug i.desc i.arg i.res i.dbg newnext,
        allocstate)
   | Iop _ ->
-      let (newnext, s') = combine i.next allocstate in
+      let (newnext, s') = combine ~size_addr i.next allocstate in
       (instr_cons_debug i.desc i.arg i.res i.dbg newnext, s')
   | Iifthenelse(test, ifso, ifnot) ->
-      let newifso = combine_restart ifso in
-      let newifnot = combine_restart ifnot in
-      let newnext = combine_restart i.next in
+      let newifso = combine_restart ~size_addr ifso in
+      let newifnot = combine_restart ~size_addr ifnot in
+      let newnext = combine_restart ~size_addr i.next in
       (instr_cons (Iifthenelse(test, newifso, newifnot)) i.arg i.res newnext,
        allocstate)
   | Iswitch(table, cases) ->
-      let newcases = Array.map combine_restart cases in
-      let newnext = combine_restart i.next in
+      let newcases = Array.map (combine_restart ~size_addr) cases in
+      let newnext = combine_restart ~size_addr i.next in
       (instr_cons (Iswitch(table, newcases)) i.arg i.res newnext,
        allocstate)
   | Icatch(rec_flag, handlers, body) ->
-      let (newbody, s') = combine body allocstate in
+      let (newbody, s') = combine ~size_addr body allocstate in
       let newhandlers =
-        List.map (fun (io, handler) -> io, combine_restart handler) handlers in
-      let newnext = combine_restart i.next in
+        List.map (fun (io, handler) -> io, combine_restart ~size_addr handler) handlers in
+      let newnext = combine_restart ~size_addr i.next in
       (instr_cons (Icatch(rec_flag, newhandlers, newbody))
          i.arg i.res newnext, s')
   | Itrywith(body, handler) ->
-      let (newbody, s') = combine body allocstate in
-      let newhandler = combine_restart handler in
-      let newnext = combine_restart i.next in
+      let (newbody, s') = combine ~size_addr body allocstate in
+      let newhandler = combine_restart ~size_addr handler in
+      let newnext = combine_restart ~size_addr i.next in
       (instr_cons (Itrywith(newbody, newhandler)) i.arg i.res newnext, s')
 
-and combine_restart i =
-  let (newi, _) = combine i No_alloc in newi
+and combine_restart ~size_addr i =
+  let (newi, _) = combine ~size_addr i No_alloc in newi
 
-let fundecl f =
-  {f with fun_body = combine_restart f.fun_body}
+let fundecl ~size_addr f =
+  {f with fun_body = combine_restart ~size_addr f.fun_body}

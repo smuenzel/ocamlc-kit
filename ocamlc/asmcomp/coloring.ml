@@ -32,7 +32,13 @@ module OrderedRegSet =
 
 open Reg
 
-let allocate_registers() =
+let allocate_registers
+    (type a s)
+    (module Proc : Proc_intf.S
+      with type addressing_mode = a
+       and type specific_operation = s
+    )
+  =
 
   (* Constrained regs with degree >= number of available registers,
      sorted by spill cost (highest first).

@@ -319,9 +319,17 @@ let add_prologue first_insn prologue_required =
   else
     tailrec_entry_point_label, tailrec_entry_point
 
-let fundecl f =
+let fundecl
+    (type a s)
+    (module Proc : Proc_intf.S
+      with type addressing_mode = a
+       and type specific_operation = s
+    )
+    f
+  =
   let fun_prologue_required = Proc.prologue_required f in
   let contains_calls = f.Mach.fun_contains_calls in
+  let end_instr = end_instr () in
   let fun_tailrec_entry_point_label, fun_body =
     add_prologue (linear f.Mach.fun_body end_instr contains_calls)
       fun_prologue_required

@@ -18,9 +18,13 @@
 open Misc
 open Format
 
-val link: ppf_dump:formatter -> string list -> string -> unit
+val link 
+  : (module Platform_intf.S with type Arch.addressing_mode = 'a and type Arch.specific_operation = 's)
+  -> ppf_dump:formatter -> string list -> string -> unit
 
-val link_shared: ppf_dump:formatter -> string list -> string -> unit
+val link_shared
+  : (module Platform_intf.S with type Arch.addressing_mode = 'a and type Arch.specific_operation = 's)
+  -> ppf_dump:formatter -> string list -> string -> unit
 
 val call_linker_shared: string list -> string -> unit
 

@@ -14,4 +14,10 @@
 (**************************************************************************)
 
 (* Transformation of Mach code into a list of pseudo-instructions. *)
-val fundecl: Mach.fundecl -> Linear.fundecl
+val fundecl
+  : (module Proc_intf.S
+      with type addressing_mode = 'addressing_mode
+       and type specific_operation = 'specific_operation
+    )
+  -> ('addressing_mode, 'specific_operation) Mach.fundecl
+  -> ('addressing_mode, 'specific_operation) Linear.fundecl

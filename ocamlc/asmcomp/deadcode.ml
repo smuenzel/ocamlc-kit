@@ -20,8 +20,8 @@ open Mach
 
 module Int = Numbers.Int
 
-type d = {
-  i : instruction;   (* optimized instruction *)
+type ('a, 's) d = {
+  i : ('a, 's) instruction;   (* optimized instruction *)
   regs : Reg.Set.t;  (* a set of registers live "before" instruction [i] *)
   exits : Int.Set.t;  (* indexes of Iexit instructions "live before" [i] *)
 }
@@ -36,17 +36,26 @@ let append a b =
   | Iend -> a
   | _ -> append a b
 
-let rec deadcode i =
+let rec deadcode
+    ~operation_is_pure:arch_operation_is_pure
+    ~regs_are_volatile
+    i
+  =
+  let deadcode =
+    deadcode
+      ~operation_is_pure:arch_operation_is_pure
+      ~regs_are_volatile
+  in
   match i.desc with
   | Iend | Ireturn | Iop(Itailcall_ind) | Iop(Itailcall_imm _) | Iraise _ ->
       let regs = Reg.add_set_array i.live i.arg in
       { i; regs; exits = Int.Set.empty; }
   | Iop op ->
       let s = deadcode i.next in
-      if operation_is_pure op                  (* no side effects *)
+      if operation_is_pure arch_operation_is_pure op (* no side effects *)
       && Reg.disjoint_set_array s.regs i.res   (* results are not used after *)
-      && not (Proc.regs_are_volatile i.arg)    (* no stack-like hard reg *)
-      && not (Proc.regs_are_volatile i.res)    (*            is involved *)
+      && not (regs_are_volatile i.arg)    (* no stack-like hard reg *)
+      && not (regs_are_volatile i.res)    (*            is involved *)
       then begin
         assert (Array.length i.res > 0);  (* sanity check *)
         s
@@ -137,6 +146,6 @@ let rec deadcode i =
                   (Int.Set.union body'.exits handler'.exits);
       }
 
-let fundecl f =
-  let new_body = deadcode f.fun_body in
+let fundecl ~operation_is_pure ~regs_are_volatile f =
+  let new_body = deadcode ~operation_is_pure ~regs_are_volatile f.fun_body in
   {f with fun_body = new_body.i}

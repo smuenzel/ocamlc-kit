@@ -15,4 +15,7 @@
 
 (* Register allocation by coloring of the interference graph *)
 
-val allocate_registers: unit -> int array
+val allocate_registers
+  : (module Proc_intf.S with type addressing_mode = 'a and type specific_operation = 's)
+  -> int array
+
