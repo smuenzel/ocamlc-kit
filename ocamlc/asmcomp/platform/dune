@@ -1,6 +1,6 @@
 (library
   (name asmcomp_platform)
-  (package ocamlc_kit)
+  (public_name ocamlc_kit.internal.asmcomp_platform)
   (libraries compiler_lambda identifiers compiler_parsing asmcomp_platform_shared arch_amd64)
   (flags :standard -open Asmcomp_platform_shared -w -9)
   )

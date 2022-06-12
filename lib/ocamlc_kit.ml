@@ -1,7 +1,3 @@
 
-module Asmcomp_platform = struct
-  include Asmcomp_platform
-end
-module Asmcomp_platform_shared = struct
-  include Asmcomp_platform_shared
-end
+module Asmcomp_platform = Asmcomp_platform
+module Asmcomp_platform_shared = Asmcomp_platform_shared
