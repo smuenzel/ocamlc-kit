@@ -33,11 +33,12 @@ type op_class =
        valnums = operation(valnums)
    plus a mapping from registers to valnums (value numbers). *)
 
-type rhs = operation * valnum array
+type ('addressing_mode, 'specific_operation) rhs = ('addressing_mode, 'specific_operation) operation * valnum array
 
 module Equations = struct
+  type key = T : (_,_) rhs -> key [@@unboxed]
   module Rhs_map =
-    Map.Make(struct type t = rhs let compare = Stdlib.compare end)
+    Map.Make(struct type t = key let compare = Stdlib.compare end)
 
   type 'a t =
     { mutable_load_equations : 'a Rhs_map.t;
@@ -214,7 +215,16 @@ let insert_move srcs dsts i =
          let i1 = array_fold2 insert_single_move i tmps dsts in
          array_fold2 insert_single_move i1 srcs tmps
 
-class cse_generic = object (self)
+type ('addressing_mode,'specific_operation) proc =
+  (module Proc_intf.S with type specific_operation = 'specific_operation and type addressing_mode = 'addressing_mode)
+
+let destroyed_at_oper (type addressing_mode specific_operation) ((module Proc) : (addressing_mode,specific_operation) proc) =
+  Proc.destroyed_at_oper
+
+let regs_are_volatile (type addressing_mode specific_operation) ((module Proc) : (addressing_mode,specific_operation) proc) =
+  Proc.regs_are_volatile
+
+class ['addressing_mode, 'specific_operation] cse_generic (proc : ('addressing_mode, 'specific_operation) proc) = object (self)
 
 (* Default classification of operations.  Can be overridden in
    processor-specific files to classify specific operations better. *)
@@ -298,14 +308,14 @@ method private cse n i =
       begin match self#class_of_operation op with
       | (Op_pure | Op_checkbound | Op_load _) as op_class ->
           let (n1, varg) = valnum_regs n i.arg in
-          let n2 = set_unknown_regs n1 (Proc.destroyed_at_oper i.desc) in
-          begin match find_equation op_class n1 (op, varg) with
+          let n2 = set_unknown_regs n1 (destroyed_at_oper proc i.desc) in
+          begin match find_equation op_class n1 (T (op, varg)) with
           | Some vres ->
               (* This operation was computed earlier. *)
               (* Are there registers that hold the results computed earlier? *)
               begin match find_regs_containing n1 vres with
               | Some res when (not (self#is_cheap_operation op))
-                           && (not (Proc.regs_are_volatile res)) ->
+                           && (not (regs_are_volatile proc res)) ->
                   (* We can replace res <- op args with r <- move res,
                      provided res are stable (non-volatile) registers.
                      If the operation is very cheap to compute, e.g.
@@ -323,19 +333,19 @@ method private cse n i =
               end
           | None ->
               (* This operation produces a result we haven't seen earlier. *)
-              let n3 = set_fresh_regs n2 i.res (op, varg) op_class in
+              let n3 = set_fresh_regs n2 i.res (T (op, varg)) op_class in
               {i with next = self#cse n3 i.next}
           end
       | Op_store false | Op_other ->
           (* An initializing store or an "other" operation do not invalidate
              any equations, but we do not know anything about the results. *)
-         let n1 = set_unknown_regs n (Proc.destroyed_at_oper i.desc) in
+         let n1 = set_unknown_regs n (destroyed_at_oper proc i.desc) in
          let n2 = set_unknown_regs n1 i.res in
          {i with next = self#cse n2 i.next}
       | Op_store true ->
           (* A non-initializing store can invalidate
              anything we know about prior mutable loads. *)
-         let n1 = set_unknown_regs n (Proc.destroyed_at_oper i.desc) in
+         let n1 = set_unknown_regs n (destroyed_at_oper proc i.desc) in
          let n2 = set_unknown_regs n1 i.res in
          let n3 = self#kill_loads n2 in
          {i with next = self#cse n3 i.next}
@@ -343,11 +353,11 @@ method private cse n i =
   (* For control structures, we set the numbering to empty at every
      join point, but propagate the current numbering across fork points. *)
   | Iifthenelse(test, ifso, ifnot) ->
-     let n1 = set_unknown_regs n (Proc.destroyed_at_oper i.desc) in
+     let n1 = set_unknown_regs n (destroyed_at_oper proc i.desc) in
       {i with desc = Iifthenelse(test, self#cse n1 ifso, self#cse n1 ifnot);
               next = self#cse empty_numbering i.next}
   | Iswitch(index, cases) ->
-     let n1 = set_unknown_regs n (Proc.destroyed_at_oper i.desc) in
+     let n1 = set_unknown_regs n (destroyed_at_oper proc i.desc) in
       {i with desc = Iswitch(index, Array.map (self#cse n1) cases);
               next = self#cse empty_numbering i.next}
   | Icatch(rec_flag, handlers, body) ->

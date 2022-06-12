@@ -66,8 +66,8 @@ type symbol_literal =
   }
 
 (* Environment for emitting a function *)
-type per_function_env = {
-  f : Linear.fundecl;
+type ('addressing_mode, 'specific_operation) per_function_env = {
+  f : ('addressing_mode, 'specific_operation) Linear.fundecl;
   mutable stack_offset : int;
   mutable call_gc_sites : gc_call list;  (* used in all targets except power *)
   mutable call_gc_label : label;                       (* used only in power *)

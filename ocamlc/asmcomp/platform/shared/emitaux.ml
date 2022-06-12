@@ -97,13 +97,13 @@ let emit_bytes_directive directive s =
 let emit_float64_directive directive x =
   emit_printf "\t%s\t0x%Lx\n" directive x
 
-let emit_float64_split_directive directive x =
+let emit_float64_split_directive ~big_endian directive x =
   let lo = Int64.logand x 0xFFFF_FFFFL
   and hi = Int64.shift_right_logical x 32 in
   emit_printf "\t%s\t0x%Lx, 0x%Lx\n"
     directive
-    (if Arch.big_endian then hi else lo)
-    (if Arch.big_endian then lo else hi)
+    (if big_endian then hi else lo)
+    (if big_endian then lo else hi)
 
 let emit_float32_directive directive x =
   emit_printf "\t%s\t0x%lx\n" directive x
@@ -142,7 +142,7 @@ type emit_frame_actions =
     efa_def_label: int -> unit;
     efa_string: string -> unit }
 
-let emit_frames a =
+let emit_frames ~size_addr a =
   let filenames = Hashtbl.create 7 in
   let label_filename name =
     try
@@ -232,7 +232,7 @@ let emit_frames a =
             a.efa_label_rel (label_debuginfos false alloc_dbg) Int32.zero) dbg
       end
     end;
-    a.efa_align Arch.size_addr
+    a.efa_align size_addr
   in
   let emit_filename name lbl =
     a.efa_def_label lbl;
@@ -284,7 +284,7 @@ let emit_frames a =
   Label_table.iter emit_debuginfo debuginfos;
   Hashtbl.iter emit_filename filenames;
   Hashtbl.iter emit_defname defnames;
-  a.efa_align Arch.size_addr;
+  a.efa_align size_addr;
   frame_descriptors := []
 
 (* Detection of functions that can be duplicated between a DLL and
@@ -406,7 +406,7 @@ let report_error ppf = function
   | Stack_frame_too_large n ->
       Format.fprintf ppf "stack frame too large (%d bytes)" n
 
-let mk_env f : Emitenv.per_function_env =
+let mk_env f : (_,_) Emitenv.per_function_env =
   {
     f;
     stack_offset = 0;
@@ -429,7 +429,7 @@ type preproc_stack_check_result =
     contains_nontail_calls : bool }
 
 let preproc_stack_check ~fun_body ~frame_size ~trap_size =
-  let rec loop (i:Linear.instruction) fs max_fs nontail_flag =
+  let rec loop (i:(_,_) Linear.instruction) fs max_fs nontail_flag =
     match i.desc with
       | Lend -> { max_frame_size = max_fs;
                   contains_nontail_calls = nontail_flag}

@@ -21,19 +21,15 @@ open Linear
 
 (* Representation of the code DAG. *)
 
-type code_dag_node =
-  { instr: instruction;                 (* The instruction *)
+type ('addressing_mode, 'specific_operation) code_dag_node =
+  { instr: ('addressing_mode, 'specific_operation) instruction;                 (* The instruction *)
     delay: int;           (* How many cycles before result is available *)
-    mutable sons: (code_dag_node * int) list;
+    mutable sons: (('addressing_mode, 'specific_operation) code_dag_node * int) list;
                                         (* Instructions that depend on it *)
     mutable date: int;                  (* Start date *)
     mutable length: int;                (* Length of longest path to result *)
     mutable ancestors: int;             (* Number of ancestors *)
     mutable emitted_ancestors: int }    (* Number of emitted ancestors *)
-
-let dummy_node =
-  { instr = end_instr; delay = 0; sons = []; date = 0;
-    length = -1; ancestors = 0; emitted_ancestors = 0 }
 
 (* The code dag itself is represented by two tables from registers to nodes:
    - "results" maps registers to the instructions that produced them;
@@ -44,18 +40,28 @@ let dummy_node =
    - code_checkbounds contains the latest checkbound node not matched
      by a subsequent load or store. *)
 
-let code_results = (Hashtbl.create 31 : (location, code_dag_node) Hashtbl.t)
-let code_uses = (Hashtbl.create 31 : (location, code_dag_node) Hashtbl.t)
-let code_stores = ref ([] : code_dag_node list)
-let code_loads = ref ([] : code_dag_node list)
-let code_checkbounds = ref ([] : code_dag_node list)
+type ('addressing_mode, 'specific_operation) code =
+  { code_results : (location, ('addressing_mode, 'specific_operation) code_dag_node) Hashtbl.t
+  ; code_uses : (location, ('addressing_mode, 'specific_operation) code_dag_node) Hashtbl.t
+  ; mutable code_stores : ('addressing_mode, 'specific_operation) code_dag_node list
+  ; mutable code_loads : ('addressing_mode, 'specific_operation) code_dag_node list
+  ; mutable code_checkbounds : ('addressing_mode, 'specific_operation) code_dag_node list
+  }
 
-let clear_code_dag () =
-  Hashtbl.clear code_results;
-  Hashtbl.clear code_uses;
-  code_stores := [];
-  code_loads := [];
-  code_checkbounds := []
+let create () =
+  { code_results = Hashtbl.create 31
+  ; code_uses = Hashtbl.create 31
+  ; code_stores = []
+  ; code_loads = []
+  ; code_checkbounds = []
+  }
+
+let clear_code_dag code =
+  Hashtbl.clear code.code_results;
+  Hashtbl.clear code.code_uses;
+  code.code_stores <- [];
+  code.code_loads <- [];
+  code.code_checkbounds <- []
 
 (* Add an edge to the code DAG *)
 
@@ -68,9 +74,9 @@ let add_edge_after son ancestor = add_edge ancestor son 0
 (* Add edges from all instructions that define a pseudoregister [arg] being used
    as argument to node [node] (RAW dependencies *)
 
-let add_RAW_dependencies node arg =
+let add_RAW_dependencies code node arg =
   try
-    let ancestor = Hashtbl.find code_results arg.loc in
+    let ancestor = Hashtbl.find code.code_results arg.loc in
     add_edge ancestor node ancestor.delay
   with Not_found ->
     ()
@@ -78,16 +84,16 @@ let add_RAW_dependencies node arg =
 (* Add edges from all instructions that use a pseudoregister [res] that is
    defined by node [node] (WAR dependencies). *)
 
-let add_WAR_dependencies node res =
-  let ancestors = Hashtbl.find_all code_uses res.loc in
+let add_WAR_dependencies code node res =
+  let ancestors = Hashtbl.find_all code.code_uses res.loc in
   List.iter (add_edge_after node) ancestors
 
 (* Add edges from all instructions that have already defined a pseudoregister
    [res] that is defined by node [node] (WAW dependencies). *)
 
-let add_WAW_dependencies node res =
+let add_WAW_dependencies code node res =
   try
-    let ancestor = Hashtbl.find code_results res.loc in
+    let ancestor = Hashtbl.find code.code_results res.loc in
     add_edge ancestor node 0
   with Not_found ->
     ()
@@ -135,16 +141,22 @@ let rec remove_instr node = function
 
 (* We treat Lreloadretaddr as a word-sized load *)
 
-let some_load =
+(* The generic scheduler *)
+
+class virtual ['addressing_mode, 'specific_operation] scheduler_generic ~identity_addressing ~destroyed_at_oper = object (self)
+
+val code = create ()
+
+val some_load =
   Iload {
     memory_chunk = Cmm.Word_int;
-    addressing_mode = Arch.identity_addressing;
+    addressing_mode = identity_addressing;
     mutability = Mutable;
     is_atomic = false }
 
-(* The generic scheduler *)
-
-class virtual scheduler_generic = object (self)
+val dummy_node =
+  { instr = end_instr (); delay = 0; sons = []; date = 0;
+    length = -1; ancestors = 0; emitted_ancestors = 0 }
 
 val mutable trywith_nesting = 0
 
@@ -211,7 +223,7 @@ method private instr_is_checkbound instr =
 
 (* Estimate the latency of an operation. *)
 
-method virtual oper_latency : Mach.operation -> int
+method virtual oper_latency : ('addressing_mode, 'specific_operation) Mach.operation -> int
 
 (* Estimate the latency of a Lreloadretaddr operation. *)
 
@@ -227,7 +239,7 @@ method private instr_latency instr =
 
 (* Estimate the number of cycles consumed by emitting an operation. *)
 
-method virtual oper_issue_cycles : Mach.operation -> int
+method virtual oper_issue_cycles : ('addressing_mode, 'specific_operation) Mach.operation -> int
 
 (* Estimate the number of cycles consumed by emitting a Lreloadretaddr. *)
 
@@ -245,7 +257,7 @@ method private instr_issue_cycles instr =
 
 method private destroyed_by_instr instr =
   match instr.desc with
-  | Lop op -> Proc.destroyed_at_oper (Iop op)
+  | Lop op -> destroyed_at_oper (Iop op)
   | Lreloadretaddr -> [||]
   | _ -> assert false
 
@@ -264,50 +276,50 @@ method private add_instruction ready_queue instr =
       emitted_ancestors = 0 } in
   (* Add edges from all instructions that define one of the registers used
      (RAW dependencies) *)
-  Array.iter (add_RAW_dependencies node) instr.arg;
+  Array.iter (add_RAW_dependencies code node) instr.arg;
   (* Also add edges from all instructions that use one of the result regs
      of this instruction, or a reg destroyed by this instruction
      (WAR dependencies). *)
-  Array.iter (add_WAR_dependencies node) instr.res;
-  Array.iter (add_WAR_dependencies node) destroyed;   (* PR#5731 *)
+  Array.iter (add_WAR_dependencies code node) instr.res;
+  Array.iter (add_WAR_dependencies code node) destroyed;   (* PR#5731 *)
   (* Also add edges from all instructions that have already defined one
      of the results of this instruction, or a reg destroyed by
      this instruction (WAW dependencies). *)
-  Array.iter (add_WAW_dependencies node) instr.res;
-  Array.iter (add_WAW_dependencies node) destroyed;   (* PR#5731 *)
+  Array.iter (add_WAW_dependencies code node) instr.res;
+  Array.iter (add_WAW_dependencies code node) destroyed;   (* PR#5731 *)
   (* If this is a load, add edges from the most recent store viewed so
      far (if any) and remember the load.  Also add edges from the most
      recent checkbound and forget that checkbound. *)
   if self#instr_is_load instr then begin
-    List.iter (add_edge_after node) !code_stores;
-    code_loads := node :: !code_loads;
-    List.iter (add_edge_after node) !code_checkbounds;
-    code_checkbounds := []
+    List.iter (add_edge_after node) code.code_stores;
+    code.code_loads <- node :: code.code_loads;
+    List.iter (add_edge_after node) code.code_checkbounds;
+    code.code_checkbounds <- []
   end
   (* If this is a store, add edges from the most recent store,
      as well as all loads viewed since then, and also the most recent
      checkbound. Remember the store,
      discarding the previous stores, loads and checkbounds. *)
   else if self#instr_is_store instr then begin
-    List.iter (add_edge_after node) !code_stores;
-    List.iter (add_edge_after node) !code_loads;
-    List.iter (add_edge_after node) !code_checkbounds;
-    code_stores := [node];
-    code_loads := [];
-    code_checkbounds := []
+    List.iter (add_edge_after node) code.code_stores;
+    List.iter (add_edge_after node) code.code_loads;
+    List.iter (add_edge_after node) code.code_checkbounds;
+    code.code_stores <- [node];
+    code.code_loads <- [];
+    code.code_checkbounds <- []
   end
   else if self#instr_is_checkbound instr then begin
-    code_checkbounds := [node]
+    code.code_checkbounds <- [node]
   end;
   (* Remember the registers used and produced by this instruction *)
   for i = 0 to Array.length instr.res - 1 do
-    Hashtbl.add code_results instr.res.(i).loc node
+    Hashtbl.add code.code_results instr.res.(i).loc node
   done;
   for i = 0 to Array.length destroyed - 1 do
-    Hashtbl.add code_results destroyed.(i).loc node  (* PR#5731 *)
+    Hashtbl.add code.code_results destroyed.(i).loc node  (* PR#5731 *)
   done;
   for i = 0 to Array.length instr.arg - 1 do
-    Hashtbl.add code_uses instr.arg.(i).loc node
+    Hashtbl.add code.code_uses instr.arg.(i).loc node
   done;
   (* If this is a root instruction (all arguments already computed),
      add it to the ready queue *)
@@ -370,7 +382,7 @@ method schedule_fundecl f =
     | Lpoptrap -> { i with next = schedule i.next (try_nesting - 1) }
     | _ ->
         if self#instr_in_basic_block i try_nesting then begin
-          clear_code_dag();
+          clear_code_dag code;
           schedule_block [] i try_nesting
         end else
           { i with next = schedule i.next try_nesting }
@@ -391,7 +403,7 @@ method schedule_fundecl f =
 
   if f.fun_fast && !Clflags.insn_sched then begin
     let new_body = schedule f.fun_body 0 in
-    clear_code_dag();
+    clear_code_dag code;
     { fun_name = f.fun_name;
       fun_args = f.fun_args;
       fun_body = new_body;
@@ -408,4 +420,4 @@ method schedule_fundecl f =
 
 end
 
-let reset () = clear_code_dag ()
+let reset () = ()

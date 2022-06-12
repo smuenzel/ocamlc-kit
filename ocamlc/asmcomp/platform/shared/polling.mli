@@ -19,8 +19,15 @@
 
 (** Analyses related to the insertion of [Ipoll] operations. *)
 
-val instrument_fundecl : future_funcnames:Misc.Stdlib.String.Set.t
-    -> Mach.fundecl -> Mach.fundecl
+val instrument_fundecl
+  : operation_can_raise:('special_operation -> bool)
+  -> future_funcnames:Misc.Stdlib.String.Set.t
+  -> (('addressing_mode, 'special_operation) Mach.fundecl as 'f)
+  -> 'f
 
-val requires_prologue_poll : future_funcnames:Misc.Stdlib.String.Set.t
-    -> fun_name:string -> Mach.instruction -> bool
+val requires_prologue_poll
+  : operation_can_raise:('special_operation -> bool)
+  -> future_funcnames:Misc.Stdlib.String.Set.t
+  -> fun_name:string
+  -> ('addressing_mode, 'special_operation) Mach.instruction
+  -> bool

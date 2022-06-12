@@ -27,7 +27,7 @@ val emit_string_literal: string -> unit
 val emit_string_directive: string -> string -> unit
 val emit_bytes_directive: string -> string -> unit
 val emit_float64_directive: string -> int64 -> unit
-val emit_float64_split_directive: string -> int64 -> unit
+val emit_float64_split_directive: big_endian:bool -> string -> int64 -> unit
 val emit_float32_directive: string -> int32 -> unit
 
 val reset : unit -> unit
@@ -62,7 +62,7 @@ type emit_frame_actions =
     efa_def_label: int -> unit;
     efa_string: string -> unit }
 
-val emit_frames: emit_frame_actions -> unit
+val emit_frames: size_addr:int -> emit_frame_actions -> unit
 
 val is_generic_function: string -> bool
 
@@ -89,14 +89,14 @@ type error =
 exception Error of error
 val report_error: Format.formatter -> error -> unit
 
-val mk_env : Linear.fundecl -> Emitenv.per_function_env
+val mk_env : ('a,'s) Linear.fundecl -> ('a, 's) Emitenv.per_function_env
 
 type preproc_stack_check_result =
   { max_frame_size : int;
     contains_nontail_calls : bool }
 
 val preproc_stack_check:
-  fun_body:Linear.instruction ->
+  fun_body:(_,_) Linear.instruction ->
   frame_size:int ->
   trap_size:int ->
   preproc_stack_check_result

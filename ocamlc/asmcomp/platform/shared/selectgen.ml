@@ -91,20 +91,20 @@ let oper_result_type = function
 (* Infer the size in bytes of the result of an expression whose evaluation
    may be deferred (cf. [emit_parts]). *)
 
-let size_component = function
+let size_component (module Arch : Arch_intf.S) = function
   | Val | Addr -> Arch.size_addr
   | Int -> Arch.size_int
   | Float -> Arch.size_float
 
-let size_machtype mty =
+let size_machtype arch  mty =
   let size = ref 0 in
   for i = 0 to Array.length mty - 1 do
-    size := !size + size_component mty.(i)
+    size := !size + size_component arch mty.(i)
   done;
   !size
 
-let size_expr (env:environment) exp =
-  let rec size localenv = function
+let size_expr ((module Arch : Arch_intf.S) as arch)  (env:environment) exp =
+  let rec size localenv : _ -> int = function
       Cconst_int _ | Cconst_natint _ -> Arch.size_int
     | Cconst_symbol _ ->
         Arch.size_addr
@@ -115,7 +115,7 @@ let size_expr (env:environment) exp =
         with Not_found ->
         try
           let regs = env_find id env in
-          size_machtype (Array.map (fun r -> r.typ) regs)
+          size_machtype arch (Array.map (fun r -> r.typ) regs)
         with Not_found ->
           Misc.fatal_error("Selection.size_expr: unbound var " ^
                            V.unique_name id)
@@ -123,7 +123,7 @@ let size_expr (env:environment) exp =
     | Ctuple el ->
         List.fold_right (fun e sz -> size localenv e + sz) el 0
     | Cop(op, _, _) ->
-        size_machtype(oper_result_type op)
+        size_machtype arch (oper_result_type op)
     | Clet(id, arg, body) ->
         size (V.Map.add (VP.var id) (size localenv arg) localenv) body
     | Csequence(_e1, e2) ->
@@ -303,7 +303,30 @@ end
 
 (* The default instruction selection class *)
 
-class virtual selector_generic = object (self)
+type ('addressing_mode, 'specific_operation) arch = (module Arch_intf.S with type addressing_mode = 'addressing_mode and type specific_operation = 'specific_operation)
+
+let operation_can_raise (type a s) (arch : (a,s) arch) = let (module Arch) = arch in Arch.operation_can_raise
+let size_int (type a s) (arch : (a,s) arch) = let (module Arch) = arch in Arch.size_int
+let size_addr (type a s) (arch : (a,s) arch) = let (module Arch) = arch in Arch.size_addr
+let offset_addressing (type a s) (arch : (a,s) arch) = let (module Arch) = arch in Arch.offset_addressing
+let identity_addressing (type a s) (arch : (a,s) arch) = let (module Arch) = arch in Arch.identity_addressing
+
+type ('addressing_mode, 'specific_operation) proc = (module Proc_intf.S with type addressing_mode = 'addressing_mode and type specific_operation = 'specific_operation)
+
+let loc_exn_bucket (type a s) (proc : (a,s) proc) = let (module Proc) = proc in Proc.loc_exn_bucket
+let loc_arguments (type a s) (proc : (a,s) proc) = let (module Proc) = proc in Proc.loc_arguments
+let loc_results (type a s) (proc : (a,s) proc) = let (module Proc) = proc in Proc.loc_results
+let loc_external_results (type a s) (proc : (a,s) proc) = let (module Proc) = proc in Proc.loc_external_results
+let loc_external_arguments (type a s) (proc : (a,s) proc) = let (module Proc) = proc in Proc.loc_external_arguments
+let loc_parameters (type a s) (proc : (a,s) proc) = let (module Proc) = proc in Proc.loc_parameters
+let num_register_classes (type a s) (proc : (a,s) proc) = let (module Proc) = proc in Proc.num_register_classes
+
+class virtual ['addressing_mode, 'specific_operation] selector_generic
+    (arch : ('addressing_mode, 'specific_operation) arch)
+    (proc : ('addressing_mode, 'specific_operation) proc)
+  = 
+object (self)
+
 
 (* A syntactic criterion used in addition to judgements about (co)effects as
    to whether the evaluation of a given expression may be deferred by
@@ -385,7 +408,7 @@ method effects_of exp =
 
 method is_immediate op n =
   match op with
-  | Ilsl | Ilsr | Iasr -> n >= 0 && n < Arch.size_int * 8
+  | Ilsl | Ilsr | Iasr -> n >= 0 && n < size_int arch * 8
   | _ -> false
 
 (* Says whether an integer constant is a suitable immediate argument for
@@ -396,7 +419,7 @@ method virtual is_immediate_test : integer_comparison -> int -> bool
 (* Selection of addressing modes *)
 
 method virtual select_addressing :
-  Cmm.memory_chunk -> Cmm.expression -> Arch.addressing_mode * Cmm.expression
+  Cmm.memory_chunk -> Cmm.expression -> 'addressing_mode * Cmm.expression
 
 (* Default instruction selection for stores (of words) *)
 
@@ -552,7 +575,9 @@ method regs_for tys = Reg.createv tys
 
 (* Buffering of instruction sequences *)
 
-val mutable instr_seq = dummy_instr
+
+val mutable instr_seq = dummy_instr ()
+val dummy_instr = dummy_instr ()
 
 method insert_debug _env desc dbg arg res =
   instr_seq <- instr_cons_debug desc arg res dbg instr_seq
@@ -562,7 +587,7 @@ method insert _env desc arg res =
 
 method extract_onto o =
   let rec extract res i =
-    if i == dummy_instr
+    if is_dummy i
       then res
       else extract {i with next = res} i.next in
     extract o instr_seq
@@ -671,7 +696,7 @@ method emit_expr (env:environment) exp =
       begin match self#emit_expr env arg with
         None -> None
       | Some r1 ->
-          let rd = [|Proc.loc_exn_bucket|] in
+          let rd = [|loc_exn_bucket proc|] in
           self#insert env (Iop Imove) r1 rd;
           self#insert_debug env  (Iraise k) dbg rd [||];
           None
@@ -700,8 +725,8 @@ method emit_expr (env:environment) exp =
               let r1 = self#emit_tuple env new_args in
               let rarg = Array.sub r1 1 (Array.length r1 - 1) in
               let rd = self#regs_for ty in
-              let (loc_arg, stack_ofs) = Proc.loc_arguments (Reg.typv rarg) in
-              let loc_res = Proc.loc_results (Reg.typv rd) in
+              let (loc_arg, stack_ofs) = loc_arguments proc (Reg.typv rarg) in
+              let loc_res = loc_results proc (Reg.typv rd) in
               self#insert_move_args env rarg loc_arg stack_ofs;
               self#insert_debug env (Iop new_op) dbg
                           (Array.append [|r1.(0)|] loc_arg) loc_res;
@@ -710,8 +735,8 @@ method emit_expr (env:environment) exp =
           | Icall_imm _ ->
               let r1 = self#emit_tuple env new_args in
               let rd = self#regs_for ty in
-              let (loc_arg, stack_ofs) = Proc.loc_arguments (Reg.typv r1) in
-              let loc_res = Proc.loc_results (Reg.typv rd) in
+              let (loc_arg, stack_ofs) = loc_arguments proc (Reg.typv r1) in
+              let loc_res = loc_results proc (Reg.typv rd) in
               self#insert_move_args env r1 loc_arg stack_ofs;
               self#insert_debug env (Iop new_op) dbg loc_arg loc_res;
               self#insert_move_results env loc_res rd stack_ofs;
@@ -723,14 +748,16 @@ method emit_expr (env:environment) exp =
               let loc_res =
                 self#insert_op_debug env
                   (Iextcall {r with stack_ofs = stack_ofs}) dbg
-                  loc_arg (Proc.loc_external_results (Reg.typv rd)) in
+                  loc_arg (loc_external_results proc (Reg.typv rd)) in
               self#insert_move_results env loc_res rd stack_ofs;
               Some rd
           | Ialloc { bytes = _; } ->
               let rd = self#regs_for typ_val in
-              let bytes = size_expr env (Ctuple new_args) in
-              assert (bytes mod Arch.size_addr = 0);
-              let alloc_words = bytes / Arch.size_addr in
+              let bytes =
+                size_expr (arch : (_,_) arch :> (module Arch_intf.S)) env (Ctuple new_args)
+              in
+              assert (bytes mod size_addr arch = 0);
+              let alloc_words = bytes / size_addr arch in
               let op =
                 Ialloc { bytes; dbginfo = [{alloc_words; alloc_dbg = dbg}] }
               in
@@ -838,7 +865,7 @@ method emit_expr (env:environment) exp =
       let r = join env r1 s1 r2 s2 in
       self#insert env
         (Itrywith(s1#extract,
-                  instr_cons (Iop Imove) [|Proc.loc_exn_bucket|] rv
+                  instr_cons (Iop Imove) [|loc_exn_bucket proc|] rv
                              (s2#extract)))
         [||] [||];
       r
@@ -973,7 +1000,7 @@ method emit_extcall_args env ty_args args =
   let args = self#emit_tuple_not_flattened env args in
   let ty_args =
     if ty_args = [] then List.map (fun _ -> XInt) args else ty_args in
-  let locs, stack_ofs = Proc.loc_external_arguments ty_args in
+  let locs, stack_ofs = loc_external_arguments proc ty_args in
   let ty_args = Array.of_list ty_args in
   if stack_ofs <> 0 then
     self#insert env (Iop(Istackoffset stack_ofs)) [||] [||];
@@ -992,7 +1019,7 @@ method insert_move_extcall_arg env _ty_arg src dst =
 
 method emit_stores env data regs_addr =
   let a =
-    ref (Arch.offset_addressing Arch.identity_addressing (-Arch.size_int)) in
+    ref (offset_addressing arch (identity_addressing arch) (-size_int arch)) in
   List.iter
     (fun e ->
       let (op, arg) = self#select_store false !a e in
@@ -1007,11 +1034,19 @@ method emit_stores env data regs_addr =
                 self#insert env
                             (Iop(Istore(kind, !a, false)))
                             (Array.append [|r|] regs_addr) [||];
-                a := Arch.offset_addressing !a (size_component r.typ)
+                a := offset_addressing
+                    arch
+                    !a
+                    (size_component
+                      (arch : (_,_) arch :> (module Arch_intf.S))
+                       r.typ)
               done
           | _ ->
               self#insert env (Iop op) (Array.append regs regs_addr) [||];
-              a := Arch.offset_addressing !a (size_expr env e))
+              a := offset_addressing arch !a
+                  (size_expr
+                      (arch : (_,_) arch :> (module Arch_intf.S))
+                     env e))
     data
 
 (* Same, but in tail position *)
@@ -1020,7 +1055,7 @@ method private emit_return (env:environment) exp =
   match self#emit_expr env exp with
     None -> ()
   | Some r ->
-      let loc = Proc.loc_results (Reg.typv r) in
+      let loc = loc_results proc (Reg.typv r) in
       self#insert_moves env r loc;
       self#insert env Ireturn loc [||]
 
@@ -1047,7 +1082,7 @@ method emit_tail (env:environment) exp =
             Icall_ind ->
               let r1 = self#emit_tuple env new_args in
               let rarg = Array.sub r1 1 (Array.length r1 - 1) in
-              let (loc_arg, stack_ofs) = Proc.loc_arguments (Reg.typv rarg) in
+              let (loc_arg, stack_ofs) = loc_arguments proc (Reg.typv rarg) in
               if stack_ofs = 0 then begin
                 let call = Iop (Itailcall_ind) in
                 self#insert_moves env rarg loc_arg;
@@ -1055,7 +1090,7 @@ method emit_tail (env:environment) exp =
                             (Array.append [|r1.(0)|] loc_arg) [||];
               end else begin
                 let rd = self#regs_for ty in
-                let loc_res = Proc.loc_results (Reg.typv rd) in
+                let loc_res = loc_results proc (Reg.typv rd) in
                 self#insert_move_args env rarg loc_arg stack_ofs;
                 self#insert_debug env (Iop new_op) dbg
                             (Array.append [|r1.(0)|] loc_arg) loc_res;
@@ -1064,19 +1099,19 @@ method emit_tail (env:environment) exp =
               end
           | Icall_imm { func; } ->
               let r1 = self#emit_tuple env new_args in
-              let (loc_arg, stack_ofs) = Proc.loc_arguments (Reg.typv r1) in
+              let (loc_arg, stack_ofs) = loc_arguments proc (Reg.typv r1) in
               if stack_ofs = 0 then begin
                 let call = Iop (Itailcall_imm { func; }) in
                 self#insert_moves env r1 loc_arg;
                 self#insert_debug env call dbg loc_arg [||];
               end else if func = !current_function_name then begin
                 let call = Iop (Itailcall_imm { func; }) in
-                let loc_arg' = Proc.loc_parameters (Reg.typv r1) in
+                let loc_arg' = loc_parameters proc (Reg.typv r1) in
                 self#insert_moves env r1 loc_arg';
                 self#insert_debug env call dbg loc_arg' [||];
               end else begin
                 let rd = self#regs_for ty in
-                let loc_res = Proc.loc_results (Reg.typv rd) in
+                let loc_res = loc_results proc (Reg.typv rd) in
                 self#insert_move_args env r1 loc_arg stack_ofs;
                 self#insert_debug env (Iop new_op) dbg loc_arg loc_res;
                 self#insert env (Iop(Istackoffset(-stack_ofs))) [||] [||];
@@ -1142,12 +1177,12 @@ method emit_tail (env:environment) exp =
       let s2 = self#emit_tail_sequence (env_add v rv env) e2 in
       self#insert env
         (Itrywith(s1#extract,
-                  instr_cons (Iop Imove) [|Proc.loc_exn_bucket|] rv s2))
+                  instr_cons (Iop Imove) [|loc_exn_bucket proc|] rv s2))
         [||] [||];
       begin match opt_r1 with
         None -> ()
       | Some r1 ->
-          let loc = Proc.loc_results (Reg.typv r1) in
+          let loc = loc_results proc (Reg.typv r1) in
           self#insert_moves env r1 loc;
           self#insert env Ireturn loc [||]
       end
@@ -1166,14 +1201,14 @@ method private emit_tail_sequence env exp =
 
 (* Sequentialization of a function definition *)
 
-method emit_fundecl ~future_funcnames f =
+method emit_fundecl ~future_funcnames f : ('addressing_mode, 'specific_operation) Mach_intf.fundecl =
   current_function_name := f.Cmm.fun_name;
   let rargs =
     List.map
       (fun (id, ty) -> let r = self#regs_for ty in name_regs id r; r)
       f.Cmm.fun_args in
   let rarg = Array.concat rargs in
-  let loc_arg = Proc.loc_parameters (Reg.typv rarg) in
+  let loc_arg = loc_parameters proc (Reg.typv rarg) in
   let env =
     List.fold_right2
       (fun (id, _ty) r env -> env_add id r env)
@@ -1183,7 +1218,7 @@ method emit_fundecl ~future_funcnames f =
   instr_seq <- dummy_instr;
   self#insert_moves env loc_arg rarg;
   let polled_body =
-    if Polling.requires_prologue_poll ~future_funcnames
+    if Polling.requires_prologue_poll ~operation_can_raise:(operation_can_raise arch) ~future_funcnames
          ~fun_name:f.Cmm.fun_name body
       then
         instr_cons_debug
@@ -1199,7 +1234,7 @@ method emit_fundecl ~future_funcnames f =
     fun_codegen_options = f.Cmm.fun_codegen_options;
     fun_dbg  = f.Cmm.fun_dbg;
     fun_poll = f.Cmm.fun_poll;
-    fun_num_stack_slots = Array.make Proc.num_register_classes 0;
+    fun_num_stack_slots = Array.make (num_register_classes proc) 0;
     fun_contains_calls = !contains_calls;
   }
 

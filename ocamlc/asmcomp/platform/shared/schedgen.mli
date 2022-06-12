@@ -15,35 +15,38 @@
 
 (* Instruction scheduling *)
 
-type code_dag_node =
-  { instr: Linear.instruction;
+type ('addressing_mode, 'specific_operation) code_dag_node =
+  { instr: ('addressing_mode, 'specific_operation) Linear.instruction;
     delay: int;
-    mutable sons: (code_dag_node * int) list;
+    mutable sons: (('addressing_mode, 'specific_operation) code_dag_node * int) list;
     mutable date: int;
     mutable length: int;
     mutable ancestors: int;
     mutable emitted_ancestors: int }
 
-class virtual scheduler_generic : object
+class virtual ['addressing_mode, 'specific_operation] scheduler_generic
+  : identity_addressing:'addressing_mode
+    -> destroyed_at_oper:(('addressing_mode, 'specific_operation) Mach_intf.instruction_desc -> Reg.t array)
+    -> object
   (* Can be overridden by processor description *)
-  method virtual oper_issue_cycles : Mach.operation -> int
+  method virtual oper_issue_cycles : ('addressing_mode, 'specific_operation) Mach.operation -> int
       (* Number of cycles needed to issue the given operation *)
-  method virtual oper_latency : Mach.operation -> int
+  method virtual oper_latency : ('addressing_mode, 'specific_operation) Mach.operation -> int
       (* Number of cycles needed to complete the given operation *)
   method reload_retaddr_issue_cycles : int
       (* Number of cycles needed to issue a Lreloadretaddr operation *)
   method reload_retaddr_latency : int
       (* Number of cycles needed to complete a Lreloadretaddr operation *)
-  method oper_in_basic_block : Mach.operation -> bool
+  method oper_in_basic_block : ('addressing_mode, 'specific_operation) Mach.operation -> bool
       (* Says whether the given operation terminates a basic block *)
-  method is_store : Mach.operation -> bool
+  method is_store : ('addressing_mode, 'specific_operation) Mach.operation -> bool
       (* Says whether the given operation is a memory store *)
-  method is_load : Mach.operation -> bool
+  method is_load : ('addressing_mode, 'specific_operation) Mach.operation -> bool
       (* Says whether the given operation is a memory load *)
-  method is_checkbound : Mach.operation -> bool
+  method is_checkbound : ('addressing_mode, 'specific_operation) Mach.operation -> bool
       (* Says whether the given operation is a checkbound *)
   (* Entry point *)
-  method schedule_fundecl : Linear.fundecl -> Linear.fundecl
+  method schedule_fundecl : (('addressing_mode, 'specific_operation) Linear.fundecl as 'f) -> 'f
 end
 
 val reset : unit -> unit

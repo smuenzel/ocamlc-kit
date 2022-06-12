@@ -27,7 +27,7 @@ val env_add
 
 val env_find : Backend_var.t -> environment -> Reg.t array
 
-val size_expr : environment -> Cmm.expression -> int
+val size_expr : (module Arch_intf.S) -> environment -> Cmm.expression -> int
 
 module Effect : sig
   type t =
@@ -59,7 +59,11 @@ module Effect_and_coeffect : sig
   val join_list_map : 'a list -> ('a -> t) -> t
 end
 
-class virtual selector_generic : object
+class virtual ['addressing_mode, 'specific_operation]
+    selector_generic
+  : (module Arch_intf.S with type addressing_mode = 'addressing_mode and type specific_operation = 'specific_operation)
+    -> (module Proc_intf.S with type addressing_mode = 'addressing_mode and type specific_operation = 'specific_operation)
+  -> object
   (* The following methods must or can be overridden by the processor
      description *)
   method is_immediate : Mach.integer_operation -> int -> bool
@@ -71,7 +75,7 @@ class virtual selector_generic : object
     (* Must be defined to indicate whether a constant is a suitable
        immediate operand to the given integer test *)
   method virtual select_addressing :
-    Cmm.memory_chunk -> Cmm.expression -> Arch.addressing_mode * Cmm.expression
+    Cmm.memory_chunk -> Cmm.expression -> 'addressing_mode * Cmm.expression
     (* Must be defined to select addressing modes *)
   method is_simple_expr: Cmm.expression -> bool
   method effects_of : Cmm.expression -> Effect_and_coeffect.t
@@ -80,13 +84,13 @@ class virtual selector_generic : object
     Cmm.operation ->
     Cmm.expression list ->
     Debuginfo.t ->
-    Mach.operation * Cmm.expression list
+    ('addressing_mode, 'specific_operation) Mach.operation * Cmm.expression list
     (* Can be overridden to deal with special arithmetic instructions *)
   method select_condition : Cmm.expression -> Mach.test * Cmm.expression
     (* Can be overridden to deal with special test instructions *)
   method select_store :
-    bool -> Arch.addressing_mode -> Cmm.expression ->
-                                         Mach.operation * Cmm.expression
+    bool -> 'addressing_mode -> Cmm.expression ->
+            ('addressing_mode, 'specific_operation) Mach.operation * Cmm.expression
     (* Can be overridden to deal with special store constant instructions *)
   method regs_for : Cmm.machtype -> Reg.t array
     (* Return an array of fresh registers of the given type.
@@ -94,11 +98,11 @@ class virtual selector_generic : object
        Can be overridden if float values are stored as pairs of
        integer registers. *)
   method insert_op :
-    environment -> Mach.operation -> Reg.t array -> Reg.t array -> Reg.t array
+    environment -> ('addressing_mode, 'specific_operation) Mach.operation -> Reg.t array -> Reg.t array -> Reg.t array
     (* Can be overridden to deal with 2-address instructions
        or instructions with hardwired input/output registers *)
   method insert_op_debug :
-    environment -> Mach.operation -> Debuginfo.t -> Reg.t array
+    environment -> ('addressing_mode, 'specific_operation) Mach.operation -> Debuginfo.t -> Reg.t array
       -> Reg.t array -> Reg.t array
     (* Can be overridden to deal with 2-address instructions
        or instructions with hardwired input/output registers *)
@@ -134,24 +138,24 @@ class virtual selector_generic : object
      aligned when the C function is called. This is achieved by
      overloading this method to set [contains_calls := true] *)
 
-  method mark_instr : Mach.instruction_desc -> unit
+  method mark_instr : ('addressing_mode, 'specific_operation) Mach.instruction_desc -> unit
   (* dispatches on instructions to call one of the marking function
      above; overloading this is useful if Ispecific instructions need
      marking *)
 
   (* The following method is the entry point and should not be overridden *)
   method emit_fundecl : future_funcnames:Misc.Stdlib.String.Set.t
-                                              -> Cmm.fundecl -> Mach.fundecl
+                                              -> Cmm.fundecl -> ('addressing_mode, 'specific_operation) Mach.fundecl
 
   (* The following methods should not be overridden.  They cannot be
      declared "private" in the current implementation because they
      are not always applied to "self", but ideally they should be private. *)
-  method extract_onto : Mach.instruction -> Mach.instruction
-  method extract : Mach.instruction
+  method extract_onto : (('addressing_mode, 'specific_operation) Mach.instruction as 'i) -> 'i
+  method extract : ('addressing_mode, 'specific_operation) Mach.instruction
   method insert :
-    environment -> Mach.instruction_desc -> Reg.t array -> Reg.t array -> unit
+    environment -> ('addressing_mode, 'specific_operation) Mach.instruction_desc -> Reg.t array -> Reg.t array -> unit
   method insert_debug :
-    environment -> Mach.instruction_desc -> Debuginfo.t ->
+    environment -> ('addressing_mode, 'specific_operation) Mach.instruction_desc -> Debuginfo.t ->
       Reg.t array -> Reg.t array -> unit
   method insert_move : environment -> Reg.t -> Reg.t -> unit
   method insert_move_args :

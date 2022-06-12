@@ -100,6 +100,7 @@ module T = struct
       fun_contains_calls: bool;
     }
 end
+include T
 
 module type Mach = sig
   include module type of struct include T end

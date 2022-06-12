@@ -70,14 +70,14 @@ end
 
 module PolledLoopsAnalysis = Dataflow.Backward(Unsafe_or_safe)
 
-let polled_loops_analysis funbody =
+let polled_loops_analysis ~operation_can_raise:arch_operation_can_raise funbody =
   let transfer i ~next ~exn =
     match i.desc with
     | Iend -> next
     | Iop (Ialloc _ | Ipoll _)
     | Iop (Itailcall_ind | Itailcall_imm _) -> Safe
     | Iop op ->
-      if operation_can_raise op
+      if operation_can_raise arch_operation_can_raise op
       then Unsafe_or_safe.join next exn
       else next
     | Ireturn -> Safe
@@ -157,7 +157,7 @@ end
 
 module PTRCAnalysis = Dataflow.Backward(Polls_before_prtc)
 
-let potentially_recursive_tailcall ~future_funcnames funbody =
+let potentially_recursive_tailcall ~operation_can_raise:arch_operation_can_raise ~future_funcnames funbody =
   let transfer i ~next ~exn =
     match i.desc with
     | Iend -> next
@@ -169,7 +169,7 @@ let potentially_recursive_tailcall ~future_funcnames funbody =
       then Might_not_poll  (* this is a PTRC *)
       else Always_polls    (* this is not a PTRC *)
     | Iop op ->
-      if operation_can_raise op
+      if operation_can_raise arch_operation_can_raise op
       then Polls_before_prtc.join next exn
       else next
     | Ireturn -> Always_polls
@@ -272,10 +272,10 @@ let find_poll_alloc_or_calls instr =
       instr;
   List.rev !matches
 
-let instrument_fundecl ~future_funcnames:_ (f : Mach.fundecl) : Mach.fundecl =
+let instrument_fundecl (type a s) ~operation_can_raise ~future_funcnames:_ (f : (a, s) Mach.fundecl) : (a, s) Mach.fundecl =
   if function_is_assumed_to_never_poll f.fun_name then f
   else begin
-    let handler_needs_poll = polled_loops_analysis f.fun_body in
+    let handler_needs_poll = polled_loops_analysis ~operation_can_raise f.fun_body in
     contains_polls := false;
     let new_body = instr_body handler_needs_poll f.fun_body in
     begin match f.fun_poll with
@@ -289,10 +289,10 @@ let instrument_fundecl ~future_funcnames:_ (f : Mach.fundecl) : Mach.fundecl =
     { f with fun_body = new_body; fun_contains_calls = new_contains_calls }
   end
 
-let requires_prologue_poll ~future_funcnames ~fun_name i =
+let requires_prologue_poll ~operation_can_raise ~future_funcnames ~fun_name i =
   if function_is_assumed_to_never_poll fun_name then false
   else
-    match potentially_recursive_tailcall ~future_funcnames i with
+    match potentially_recursive_tailcall ~operation_can_raise ~future_funcnames i with
     | Might_not_poll -> true
     | Always_polls -> false
 

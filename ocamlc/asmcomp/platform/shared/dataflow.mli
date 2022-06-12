@@ -29,8 +29,8 @@ module Backward(D: DOMAIN) : sig
 
   val analyze: ?exnhandler: (D.t -> D.t) ->
                ?exnescape: D.t ->
-               transfer: (Mach.instruction -> next: D.t -> exn: D.t -> D.t) ->
-               Mach.instruction ->
+          transfer: (((_, _)Mach.instruction as 'i) -> next: D.t -> exn: D.t -> D.t) ->
+          'i ->
                D.t * (int -> D.t)
 
   (* [analyze ~exnhandler ~transfer instr] performs a backward dataflow

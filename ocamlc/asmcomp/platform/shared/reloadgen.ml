@@ -31,7 +31,7 @@ let insert_moves src dst next =
     else insert_move src.(i) dst.(i) (insmoves (i+1))
   in insmoves 0
 
-class reload_generic = object (self)
+class ['addressing_mode, 'specific_operation] reload_generic = object (self)
 
 val mutable redo_regalloc = false
 
@@ -122,12 +122,12 @@ method private reload i =
         (Icatch(rec_flag, new_handlers, self#reload body)) [||] [||]
         (self#reload i.next)
   | Iexit i ->
-      instr_cons (Iexit i) [||] [||] dummy_instr
+      instr_cons (Iexit i) [||] [||] (dummy_instr ())
   | Itrywith(body, handler) ->
       instr_cons (Itrywith(self#reload body, self#reload handler)) [||] [||]
         (self#reload i.next)
 
-method fundecl f num_stack_slots =
+method fundecl f num_stack_slots : ('addressing_mode, 'specific_operation) Mach.fundecl * bool =
   redo_regalloc <- false;
   let new_body = self#reload f.fun_body in
   ({fun_name = f.fun_name; fun_args = f.fun_args;
