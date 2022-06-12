@@ -1,4 +1,3 @@
-# 2 "asmcomp/amd64/CSE.ml"
 (**************************************************************************)
 (*                                                                        *)
 (*                                 OCaml                                  *)
@@ -20,9 +19,12 @@ open Arch
 open Mach
 open CSEgen
 
+type nonrec addressing_mode = addressing_mode
+type nonrec specific_operation = specific_operation
+
 class cse = object
 
-inherit cse_generic as super
+inherit [Arch.addressing_mode, Arch.specific_operation] cse_generic (module Proc) as super
 
 method! class_of_operation op =
   match op with

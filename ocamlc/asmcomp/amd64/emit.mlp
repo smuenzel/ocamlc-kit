@@ -37,6 +37,9 @@ module Int = Numbers.Int
 [@@@ocaml.warning "-66"]
 open! Branch_relaxation
 
+type nonrec addressing_mode = addressing_mode
+type nonrec specific_operation = specific_operation
+
 let _label s = D.label ~typ:QWORD s
 
 (* Override proc.ml *)
@@ -1045,6 +1048,7 @@ let end_assembly() =
 
   let setcnt = ref 0 in
   emit_frames
+    ~size_addr:Arch.size_addr
     { efa_code_label = (fun l -> D.qword (ConstLabel (emit_label l)));
       efa_data_label = (fun l -> D.qword (ConstLabel (emit_label l)));
       efa_8 = (fun n -> D.byte (const n));

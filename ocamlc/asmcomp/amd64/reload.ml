@@ -18,6 +18,9 @@ open Cmm
 open Reg
 open Mach
 
+type addressing_mode = Arch.addressing_mode
+type specific_operation = Arch.specific_operation
+
 (* Reloading for the AMD64 *)
 
 (* Summary of instruction set constraints:
@@ -63,7 +66,7 @@ let stackp r =
 
 class reload = object (self)
 
-inherit Reloadgen.reload_generic as super
+inherit [Arch.addressing_mode, Arch.specific_operation] Reloadgen.reload_generic as super
 
 method! reload_operation op arg res =
   match op with

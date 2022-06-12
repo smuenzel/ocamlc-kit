@@ -1,4 +1,3 @@
-# 2 "asmcomp/amd64/selection.ml"
 (**************************************************************************)
 (*                                                                        *)
 (*                                 OCaml                                  *)
@@ -20,6 +19,9 @@ open Arch
 open Proc
 open Cmm
 open Mach
+
+type nonrec addressing_mode = addressing_mode
+type nonrec specific_operation = specific_operation
 
 (* Auxiliary for recognizing addressing modes *)
 
@@ -130,7 +132,7 @@ let is_immediate_natint n = n <= 0x7FFF_FFFFn && n >= -0x8000_0000n
 
 class selector = object (self)
 
-inherit Selectgen.selector_generic as super
+inherit [Arch.addressing_mode, Arch.specific_operation] Selectgen.selector_generic (module Arch) (module Proc) as super
 
 method! is_immediate op n =
   match op with

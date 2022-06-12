@@ -1,4 +1,3 @@
-# 2 "asmcomp/amd64/proc.ml"
 (**************************************************************************)
 (*                                                                        *)
 (*                                 OCaml                                  *)
@@ -21,6 +20,9 @@ open Arch
 open Cmm
 open Reg
 open Mach
+
+type addressing_mode = Arch.addressing_mode
+type specific_operation = Arch.specific_operation
 
 let fp = Config.with_frame_pointers
 
@@ -258,7 +260,7 @@ let win64_loc_external_arguments arg =
   (loc, Misc.align !ofs 16)  (* keep stack 16-aligned *)
 
 let loc_external_arguments ty_args =
-  let arg = Cmm.machtype_of_exttype_list ty_args in
+  let arg = Cmm.machtype_of_exttype_list ~size_int:Arch.size_int ty_args in
   let loc, stack_ofs =
     if win64
     then win64_loc_external_arguments arg
