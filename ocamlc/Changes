@@ -4,6 +4,40 @@ Working version
 ### Language features:
 
 ### Runtime system:
+
+### Code generation and optimizations:
+
+### Standard library:
+
+- #11128: Add In_channel.isatty, Out_channel.isatty.
+  (Nicolás Ojeda Bär, review by Gabriel Scherer and Florian Angeletti)
+
+### Other libraries:
+
+### Tools:
+
+### Manual and documentation:
+
+### Compiler user-interface and warnings:
+
+### Internal/compiler-libs changes:
+
+### Build system:
+
+### Bug fixes:
+
+OCaml 5.0
+---------
+
+### Language features:
+
+### Runtime system:
+- #11308: Add environment variable to preserve runtime_events after exit
+  If the environment variable OCAML_RUNTIME_EVENTS_PRESERVE exists then the
+  runtime will not remove the runtime events ring buffers at exit. This
+  makes tracing very short running programs more reliable.
+  (Sadiq Jaffer, review by KC Sivaramakrishnan)
+
 - #10964: Ring-buffer based runtime tracing (runtime_events)
   Runtime_events is a very low overhead runtime tracing system designed for
   continuous monitoring of OCaml applications.
@@ -80,6 +114,15 @@ Working version
 - #11238: Increase the default limit on the stack size to 128 Mi words,
   i.e. 1 Gib for 64-bit platforms and 512 Mib for 32-bit platforms.
   (Xavier Leroy, review by Sébastien Hinderer)
+
+* #11295: An ISO C 2011 compliant compiler, including full support for atomic
+  types, is now required to build the OCaml runtime system.
+  (Xavier Leroy, review by David Allsopp and Sébastien Hinderer)
+
+- #10915, #11039, #11057, #11095, #11190: Implement quality treatment for
+  asynchronous actions in multicore. Reimplement the old behaviour of
+  `caml_process_pending*` for multicore.
+  (Guillaume Munch-Maccagnoni, review by Sadiq Jaffer and Gabriel Scherer)
 
 ### Code generation and optimizations:
 
@@ -225,6 +268,10 @@ Working version
 - #11184: Stop calling ranlib on created / installed libraries
   (Sébastien Hinderer, review by Xavier Leroy)
 
+- #11253: Deprecate `ocaml script` and `ocamlnat` script where `script` has no
+  extension and is an implicit basename.
+  (David Allsopp, review by Florian Angeletti and Sébastien Hinderer)
+
 ### Internal/compiler-libs changes:
 
 - #10878, #10909: restore flambda after the Multicore merge.
@@ -274,7 +321,7 @@ Working version
   (Sébastien Hinderer, review by David Allsopp, Nicolás Ojeda Bär,
   Xavier Leroy, Vincent Laviron and Antonin Décimo)
 
-* #11198: Install the Dynlink, Str and Unix libraries to individual
+* #11198, #11298: Install the Dynlink, Str and Unix libraries to individual
   subdirectories of LIBDIR. The compiler, debugger and toplevel automatically
   add `-I +lib` if required, but display an alert.
   (David Allsopp, review by Florian Angeletti, Nicolás Ojeda Bär,

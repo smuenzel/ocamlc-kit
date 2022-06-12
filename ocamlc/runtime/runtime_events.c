@@ -100,6 +100,13 @@ static HANDLE ring_handle;
    caml_runtime_events_init */
 static int ring_size_words;
 
+/* This is set if the OCAML_RUNTIME_EVENTS_PRESERVE environment
+  variable is present and determines whether the ring buffer is
+  cleaned up on program exit or not. It may be preserved to allow
+  tooling to analyse very short running programs where there would
+  be a race to read their ring buffers. */
+static int preserve_ring = 0;
+
 static atomic_uintnat runtime_events_enabled = 0;
 static atomic_uintnat runtime_events_paused = 0;
 
@@ -113,6 +120,9 @@ void caml_runtime_events_init() {
   runtime_events_path = caml_secure_getenv(T("OCAML_RUNTIME_EVENTS_DIR"));
 
   ring_size_words = 1 << caml_params->runtime_events_log_wsize;
+
+  preserve_ring =
+            caml_secure_getenv(T("OCAML_RUNTIME_EVENTS_PRESERVE")) ? 1 : 0;
 
   if (caml_secure_getenv(T("OCAML_RUNTIME_EVENTS_START"))) {
     /* since [caml_runtime_events_init] can only be called from the startup code
@@ -135,7 +145,9 @@ static void runtime_events_teardown_raw(int remove_file) {
       DeleteFile(current_ring_loc);
     }
 #else
-    munmap(current_metadata, current_ring_total_size);
+    /* This cast is necessary for compatibility with Illumos' non-POSIX
+      mmap/munmap */
+    munmap((void*)current_metadata, current_ring_total_size);
 
     if( remove_file ) {
       unlink(current_ring_loc);
@@ -196,8 +208,9 @@ void caml_runtime_events_destroy() {
   if (atomic_load_acq(&runtime_events_enabled)) {
     write_to_ring(EV_RUNTIME, EV_LIFECYCLE, EV_RING_STOP, 0, NULL, 0);
 
-    /* clean up runtime_events when we exit. */
-    int remove_file = 1;
+    /* clean up runtime_events when we exit if we haven't been instructed to
+      preserve the file. */
+    int remove_file = preserve_ring ? 0 : 1;
     do {
       caml_try_run_on_all_domains(&stw_teardown_runtime_events,
                                   &remove_file, NULL);
@@ -292,7 +305,10 @@ static void runtime_events_create_raw() {
       caml_fatal_error("Can't resize ring buffer");
     }
 
-    current_metadata = mmap(NULL, current_ring_total_size,
+    /* This cast is necessary for compatibility with Illumos' non-POSIX
+      mmap/munmap */
+    current_metadata = (struct runtime_events_metadata_header*)
+                        mmap(NULL, current_ring_total_size,
                             PROT_READ | PROT_WRITE, MAP_SHARED, ring_fd, 0);
 
     if (current_metadata == NULL) {
