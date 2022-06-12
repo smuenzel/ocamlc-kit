@@ -76,8 +76,8 @@ type exttype =
 (** A variant of [machtype] used to describe arguments
     to external C functions *)
 
-val machtype_of_exttype: exttype -> machtype
-val machtype_of_exttype_list: exttype list -> machtype
+val machtype_of_exttype: size_int:int -> exttype -> machtype
+val machtype_of_exttype_list: size_int:int -> exttype list -> machtype
 
 type integer_comparison = Lambda.integer_comparison =
   | Ceq | Cne | Clt | Cgt | Cle | Cge
@@ -92,6 +92,7 @@ val negate_float_comparison: float_comparison -> float_comparison
 val swap_float_comparison: float_comparison -> float_comparison
 
 type label = int
+
 val new_label: unit -> label
 val set_label: label -> unit
 val cur_label: unit -> label

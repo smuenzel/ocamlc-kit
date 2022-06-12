@@ -83,14 +83,14 @@ type exttype =
   | XInt64
   | XFloat
 
-let machtype_of_exttype = function
+let machtype_of_exttype ~size_int = function
   | XInt -> typ_int
   | XInt32 -> typ_int
-  | XInt64 -> if Arch.size_int = 4 then [|Int;Int|] else typ_int
+  | XInt64 -> if size_int = 4 then [|Int;Int|] else typ_int
   | XFloat -> typ_float
 
-let machtype_of_exttype_list xtl =
-  Array.concat (List.map machtype_of_exttype xtl)
+let machtype_of_exttype_list ~size_int xtl =
+  Array.concat (List.map (machtype_of_exttype ~size_int) xtl)
 
 type integer_comparison = Lambda.integer_comparison =
   | Ceq | Cne | Clt | Cgt | Cle | Cge
