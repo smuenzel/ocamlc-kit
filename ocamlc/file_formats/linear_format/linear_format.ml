@@ -16,14 +16,14 @@
 (**************************************************************************)
 
 (* Marshal and unmarshal a compilation unit in linear format *)
-type linear_item_info =
-  | Func of Linear.fundecl
+type ('addressing_mode, 'specific_operation) linear_item_info =
+  | Func of ('addressing_mode, 'specific_operation) Linear.fundecl
   | Data of Cmm.data_item list
 
-type linear_unit_info =
+type ('addressing_mode, 'specific_operation) linear_unit_info =
   {
     mutable unit_name : string;
-    mutable items : linear_item_info list;
+    mutable items : ('addressing_mode, 'specific_operation) linear_item_info list;
     mutable for_pack : string option
   }
 
@@ -58,7 +58,7 @@ let restore filename =
        let buffer = really_input_string ic (String.length magic) in
        if String.equal buffer magic then begin
          try
-           let linear_unit_info = (input_value ic : linear_unit_info) in
+           let linear_unit_info = (input_value ic : (_,_) linear_unit_info) in
            let last_label = (input_value ic : Cmm.label) in
            Cmm.reset ();
            Cmm.set_label last_label;
