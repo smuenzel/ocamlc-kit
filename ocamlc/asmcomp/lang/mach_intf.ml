@@ -15,107 +15,112 @@
 
 (* Representation of machine code by sequences of pseudoinstructions *)
 
-type integer_comparison =
-    Isigned of Cmm.integer_comparison
-  | Iunsigned of Cmm.integer_comparison
+module T = struct
+  type integer_comparison =
+      Isigned of Cmm.integer_comparison
+    | Iunsigned of Cmm.integer_comparison
 
-type integer_operation =
-    Iadd | Isub | Imul | Imulh | Idiv | Imod
-  | Iand | Ior | Ixor | Ilsl | Ilsr | Iasr
-  | Icomp of integer_comparison
-  | Icheckbound
+  type integer_operation =
+      Iadd | Isub | Imul | Imulh | Idiv | Imod
+    | Iand | Ior | Ixor | Ilsl | Ilsr | Iasr
+    | Icomp of integer_comparison
+    | Icheckbound
 
-type float_comparison = Cmm.float_comparison
+  type float_comparison = Cmm.float_comparison
 
-type test =
-    Itruetest
-  | Ifalsetest
-  | Iinttest of integer_comparison
-  | Iinttest_imm of integer_comparison * int
-  | Ifloattest of float_comparison
-  | Ioddtest
-  | Ieventest
+  type test =
+      Itruetest
+    | Ifalsetest
+    | Iinttest of integer_comparison
+    | Iinttest_imm of integer_comparison * int
+    | Ifloattest of float_comparison
+    | Ioddtest
+    | Ieventest
 
-type ('addressing_mode, 'specific_operation) operation =
-    Imove
-  | Ispill
-  | Ireload
-  | Iconst_int of nativeint
-  | Iconst_float of int64
-  | Iconst_symbol of string
-  | Icall_ind
-  | Icall_imm of { func : string; }
-  | Itailcall_ind
-  | Itailcall_imm of { func : string; }
-  | Iextcall of { func : string;
-                  ty_res : Cmm.machtype; ty_args : Cmm.exttype list;
-                  alloc : bool;
-                  stack_ofs : int; }
-  | Istackoffset of int
-  | Iload of { memory_chunk : Cmm.memory_chunk;
-               addressing_mode : 'addressing_mode;
-               mutability : Asttypes.mutable_flag;
-               is_atomic : bool }
-  | Istore of Cmm.memory_chunk * 'addressing_mode * bool
-  (* false = initialization, true = assignment *)
-  | Ialloc of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo ; }
-  | Iintop of integer_operation
-  | Iintop_imm of integer_operation * int
-  | Inegf | Iabsf | Iaddf | Isubf | Imulf | Idivf
-  | Ifloatofint | Iintoffloat
-  | Iopaque
-  | Ispecific of 'specific_operation
-  | Ipoll of { return_label: Cmm.label option }
-  | Idls_get
+  type ('addressing_mode, 'specific_operation) operation =
+      Imove
+    | Ispill
+    | Ireload
+    | Iconst_int of nativeint
+    | Iconst_float of int64
+    | Iconst_symbol of string
+    | Icall_ind
+    | Icall_imm of { func : string; }
+    | Itailcall_ind
+    | Itailcall_imm of { func : string; }
+    | Iextcall of { func : string;
+                    ty_res : Cmm.machtype; ty_args : Cmm.exttype list;
+                    alloc : bool;
+                    stack_ofs : int; }
+    | Istackoffset of int
+    | Iload of { memory_chunk : Cmm.memory_chunk;
+                 addressing_mode : 'addressing_mode;
+                 mutability : Asttypes.mutable_flag;
+                 is_atomic : bool }
+    | Istore of Cmm.memory_chunk * 'addressing_mode * bool
+    (* false = initialization, true = assignment *)
+    | Ialloc of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo ; }
+    | Iintop of integer_operation
+    | Iintop_imm of integer_operation * int
+    | Inegf | Iabsf | Iaddf | Isubf | Imulf | Idivf
+    | Ifloatofint | Iintoffloat
+    | Iopaque
+    | Ispecific of 'specific_operation
+    | Ipoll of { return_label: Cmm.label option }
+    | Idls_get
 
-type ('addressing_mode, 'specific_operation) instruction =
-  { desc: ('addressing_mode, 'specific_operation) instruction_desc;
-    next: ('addressing_mode, 'specific_operation) instruction;
-    arg: Reg.t array;
-    res: Reg.t array;
-    dbg: Debuginfo.t;
-    mutable live: Reg.Set.t
-  }
+  type ('addressing_mode, 'specific_operation) instruction =
+    { desc: ('addressing_mode, 'specific_operation) instruction_desc;
+      next: ('addressing_mode, 'specific_operation) instruction;
+      arg: Reg.t array;
+      res: Reg.t array;
+      dbg: Debuginfo.t;
+      mutable live: Reg.Set.t
+    }
 
-and ('addressing_mode, 'specific_operation) instruction_desc =
-    Iend
-  | Iop of ('addressing_mode, 'specific_operation) operation
-  | Ireturn
-  | Iifthenelse of test * ('addressing_mode, 'specific_operation) instruction * ('addressing_mode, 'specific_operation) instruction
-  | Iswitch of int array * ('addressing_mode, 'specific_operation) instruction array
-  | Icatch of Cmm.rec_flag * (int * ('addressing_mode, 'specific_operation) instruction) list * ('addressing_mode, 'specific_operation) instruction
-  | Iexit of int
-  | Itrywith of ('addressing_mode, 'specific_operation) instruction * ('addressing_mode, 'specific_operation) instruction
-  | Iraise of Lambda.raise_kind
+  and ('addressing_mode, 'specific_operation) instruction_desc =
+      Iend
+    | Iop of ('addressing_mode, 'specific_operation) operation
+    | Ireturn
+    | Iifthenelse of test * ('addressing_mode, 'specific_operation) instruction * ('addressing_mode, 'specific_operation) instruction
+    | Iswitch of int array * ('addressing_mode, 'specific_operation) instruction array
+    | Icatch of Cmm.rec_flag * (int * ('addressing_mode, 'specific_operation) instruction) list * ('addressing_mode, 'specific_operation) instruction
+    | Iexit of int
+    | Itrywith of ('addressing_mode, 'specific_operation) instruction * ('addressing_mode, 'specific_operation) instruction
+    | Iraise of Lambda.raise_kind
 
-type ('addressing_mode, 'specific_operation) fundecl =
-  { fun_name: string;
-    fun_args: Reg.t array;
-    fun_body: ('addressing_mode, 'specific_operation) instruction;
-    fun_codegen_options : Cmm.codegen_option list;
-    fun_dbg : Debuginfo.t;
-    fun_poll: Lambda.poll_attribute;
-    fun_num_stack_slots: int array;
-    fun_contains_calls: bool;
-  }
+  type ('addressing_mode, 'specific_operation) fundecl =
+    { fun_name: string;
+      fun_args: Reg.t array;
+      fun_body: ('addressing_mode, 'specific_operation) instruction;
+      fun_codegen_options : Cmm.codegen_option list;
+      fun_dbg : Debuginfo.t;
+      fun_poll: Lambda.poll_attribute;
+      fun_num_stack_slots: int array;
+      fun_contains_calls: bool;
+    }
+end
 
-val dummy_instr: unit -> (_,_) instruction
-val is_dummy : (_,_) instruction -> bool
-val end_instr: unit -> (_,_) instruction
-val instr_cons:
-  ('addressing_mode, 'specific_operation) instruction_desc -> Reg.t array -> Reg.t array -> (('addressing_mode, 'specific_operation) instruction as 'i) ->
-  'i
-val instr_cons_debug:
-  ('addressing_mode, 'specific_operation) instruction_desc -> Reg.t array -> Reg.t array -> Debuginfo.t ->
-  (('addressing_mode, 'specific_operation) instruction as 'i) -> 'i
-val instr_iter: ((('addressing_mode, 'specific_operation) instruction as 'i) -> unit) -> 'i -> unit
+module type Mach = sig
+  include module type of struct include T end
 
-val operation_is_pure : ('specific_operation -> bool) -> ('addressing_mode, 'specific_operation) operation -> bool
-(** Returns [true] if the given operation only produces a result
-    in its destination registers, but has no side effects whatsoever:
-    it doesn't raise exceptions, it doesn't modify already-allocated
-    blocks, it doesn't adjust the stack frame, etc. *)
+  val dummy_instr: unit -> (_,_) instruction
+  val is_dummy : (_,_) instruction -> bool
+  val end_instr: unit -> (_,_) instruction
+  val instr_cons:
+    ('addressing_mode, 'specific_operation) instruction_desc -> Reg.t array -> Reg.t array -> (('addressing_mode, 'specific_operation) instruction as 'i) ->
+    'i
+  val instr_cons_debug:
+    ('addressing_mode, 'specific_operation) instruction_desc -> Reg.t array -> Reg.t array -> Debuginfo.t ->
+    (('addressing_mode, 'specific_operation) instruction as 'i) -> 'i
+  val instr_iter: ((('addressing_mode, 'specific_operation) instruction as 'i) -> unit) -> 'i -> unit
 
-val operation_can_raise : ('specific_operation -> bool) -> ('addressing_mode, 'specific_operation) operation -> bool
-(** Returns [true] if the given operation can raise an exception. *)
+  val operation_is_pure : ('specific_operation -> bool) -> ('addressing_mode, 'specific_operation) operation -> bool
+  (** Returns [true] if the given operation only produces a result
+      in its destination registers, but has no side effects whatsoever:
+      it doesn't raise exceptions, it doesn't modify already-allocated
+      blocks, it doesn't adjust the stack frame, etc. *)
 
+  val operation_can_raise : ('specific_operation -> bool) -> ('addressing_mode, 'specific_operation) operation -> bool
+  (** Returns [true] if the given operation can raise an exception. *)
+end

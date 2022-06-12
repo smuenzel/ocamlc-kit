@@ -13,13 +13,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type machtype_component =
-  | Val
-  | Addr
-  | Int
-  | Float
-
-type machtype = machtype_component array
+include Cmm_intf.T
 
 let typ_void = ([||] : machtype_component array)
 let typ_val = [|Val|]
@@ -77,12 +71,6 @@ let ge_component comp1 comp2 =
   | Float, (Int | Addr | Val) ->
     assert false
 
-type exttype =
-  | XInt
-  | XInt32
-  | XInt64
-  | XFloat
-
 let machtype_of_exttype ~size_int = function
   | XInt -> typ_int
   | XInt32 -> typ_int
@@ -92,22 +80,13 @@ let machtype_of_exttype ~size_int = function
 let machtype_of_exttype_list ~size_int xtl =
   Array.concat (List.map (machtype_of_exttype ~size_int) xtl)
 
-type integer_comparison = Lambda.integer_comparison =
-  | Ceq | Cne | Clt | Cgt | Cle | Cge
-
 let negate_integer_comparison = Lambda.negate_integer_comparison
 
 let swap_integer_comparison = Lambda.swap_integer_comparison
 
-(* With floats [not (x < y)] is not the same as [x >= y] due to NaNs,
-   so we provide additional comparisons to represent the negations.*)
-type float_comparison = Lambda.float_comparison =
-  | CFeq | CFneq | CFlt | CFnlt | CFgt | CFngt | CFle | CFnle | CFge | CFnge
-
 let negate_float_comparison = Lambda.negate_float_comparison
 
 let swap_float_comparison = Lambda.swap_float_comparison
-type label = int
 
 let init_label = 99
 
@@ -123,111 +102,6 @@ let set_label l =
 let cur_label () = !label_counter
 
 let new_label() = incr label_counter; !label_counter
-
-type rec_flag = Nonrecursive | Recursive
-
-type phantom_defining_expr =
-  | Cphantom_const_int of Targetint.t
-  | Cphantom_const_symbol of string
-  | Cphantom_var of Backend_var.t
-  | Cphantom_offset_var of { var : Backend_var.t; offset_in_words : int; }
-  | Cphantom_read_field of { var : Backend_var.t; field : int; }
-  | Cphantom_read_symbol_field of { sym : string; field : int; }
-  | Cphantom_block of { tag : int; fields : Backend_var.t list; }
-
-type memory_chunk =
-    Byte_unsigned
-  | Byte_signed
-  | Sixteen_unsigned
-  | Sixteen_signed
-  | Thirtytwo_unsigned
-  | Thirtytwo_signed
-  | Word_int
-  | Word_val
-  | Single
-  | Double
-
-and operation =
-    Capply of machtype
-  | Cextcall of string * machtype * exttype list * bool
-  | Cload of
-      { memory_chunk: memory_chunk
-      ; mutability: Asttypes.mutable_flag
-      ; is_atomic: bool }
-  | Calloc
-  | Cstore of memory_chunk * Lambda.initialization_or_assignment
-  | Caddi | Csubi | Cmuli | Cmulhi | Cdivi | Cmodi
-  | Cand | Cor | Cxor | Clsl | Clsr | Casr
-  | Ccmpi of integer_comparison
-  | Caddv | Cadda
-  | Ccmpa of integer_comparison
-  | Cnegf | Cabsf
-  | Caddf | Csubf | Cmulf | Cdivf
-  | Cfloatofint | Cintoffloat
-  | Ccmpf of float_comparison
-  | Craise of Lambda.raise_kind
-  | Ccheckbound
-  | Copaque
-  | Cdls_get
-
-type expression =
-    Cconst_int of int * Debuginfo.t
-  | Cconst_natint of nativeint * Debuginfo.t
-  | Cconst_float of float * Debuginfo.t
-  | Cconst_symbol of string * Debuginfo.t
-  | Cvar of Backend_var.t
-  | Clet of Backend_var.With_provenance.t * expression * expression
-  | Clet_mut of Backend_var.With_provenance.t * machtype
-                * expression * expression
-  | Cphantom_let of Backend_var.With_provenance.t
-      * phantom_defining_expr option * expression
-  | Cassign of Backend_var.t * expression
-  | Ctuple of expression list
-  | Cop of operation * expression list * Debuginfo.t
-  | Csequence of expression * expression
-  | Cifthenelse of expression * Debuginfo.t * expression
-      * Debuginfo.t * expression * Debuginfo.t
-  | Cswitch of expression * int array * (expression * Debuginfo.t) array
-      * Debuginfo.t
-  | Ccatch of
-      rec_flag
-        * (int * (Backend_var.With_provenance.t * machtype) list
-          * expression * Debuginfo.t) list
-        * expression
-  | Cexit of int * expression list
-  | Ctrywith of expression * Backend_var.With_provenance.t * expression
-      * Debuginfo.t
-
-type codegen_option =
-  | Reduce_code_size
-  | No_CSE
-
-type fundecl =
-  { fun_name: string;
-    fun_args: (Backend_var.With_provenance.t * machtype) list;
-    fun_body: expression;
-    fun_codegen_options : codegen_option list;
-    fun_poll: Lambda.poll_attribute;
-    fun_dbg : Debuginfo.t;
-  }
-
-type data_item =
-    Cdefine_symbol of string
-  | Cglobal_symbol of string
-  | Cint8 of int
-  | Cint16 of int
-  | Cint32 of nativeint
-  | Cint of nativeint
-  | Csingle of float
-  | Cdouble of float
-  | Csymbol_address of string
-  | Cstring of string
-  | Cskip of int
-  | Calign of int
-
-type phrase =
-    Cfunction of fundecl
-  | Cdata of data_item list
 
 let ccatch (i, ids, e1, e2, dbg) =
   Ccatch(Nonrecursive, [i, ids, e2, dbg], e1)
