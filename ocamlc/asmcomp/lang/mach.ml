@@ -17,18 +17,34 @@
 
 include Mach_intf.T
 
-let rec dummy_instr =
-  { desc = Iend;
-    next = dummy_instr;
-    arg = [||];
-    res = [||];
-    dbg = Debuginfo.none;
-    live = Reg.Set.empty
-  }
+let dummy_instr () =
+  let rec dummy_instr =
+    { desc = Iend;
+      next = dummy_instr;
+      arg = [||];
+      res = [||];
+      dbg = Debuginfo.none;
+      live = Reg.Set.empty
+    }
+  in
+  dummy_instr
+
+let is_dummy = function
+  | ({ desc = Iend
+    ; next
+    ; arg = [||]
+    ; res = [||]
+    ; dbg
+    ; live
+    } as d) 
+    when Debuginfo.is_none dbg
+      && Reg.Set.is_empty live
+    -> d == next
+  | _ -> false
 
 let end_instr () =
   { desc = Iend;
-    next = dummy_instr;
+    next = dummy_instr ();
     arg = [||];
     res = [||];
     dbg = Debuginfo.none;
@@ -69,18 +85,18 @@ let rec instr_iter f i =
       | _ ->
           instr_iter f i.next
 
-let operation_is_pure = function
+let operation_is_pure operation_is_pure = function
   | Icall_ind | Icall_imm _ | Itailcall_ind | Itailcall_imm _
   | Iextcall _ | Istackoffset _ | Istore _ | Ialloc _ | Ipoll _
   | Idls_get
   | Iintop(Icheckbound) | Iintop_imm(Icheckbound, _) | Iopaque -> false
-  | Ispecific sop -> Arch.operation_is_pure sop
+  | Ispecific sop -> operation_is_pure sop
   | _ -> true
 
-let operation_can_raise op =
+let operation_can_raise operation_can_raise op =
   match op with
   | Icall_ind | Icall_imm _ | Iextcall _
   | Iintop (Icheckbound) | Iintop_imm (Icheckbound, _)
   | Ialloc _ | Ipoll _ -> true
-  | Ispecific sop -> Arch.operation_can_raise sop
+  | Ispecific sop -> operation_can_raise sop
   | _ -> false
