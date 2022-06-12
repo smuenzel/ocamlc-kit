@@ -1,0 +1,39 @@
+(executable
+  (name optmain)
+  (modes (byte exe))
+  (modules optmain optmaindriver optcompile)
+  (libraries driver_shared compiler_env identifiers compiler_parsing compiler_typedtree middle_end_shared typing compiler_lambda asmcomp middle_end_flambda asmcomp_platform_shared)
+  (flags :standard -open Middle_end_shared -open Asmcomp -open Middle_end_flambda -open Middle_end_closure -open Asmcomp_platform_shared -w -9)
+  )
+
+(install
+ (section bin)
+ (files (optmain.exe as ocamlopt.opt)))
+
+(install
+ (section bin)
+ (files (optmain.bc as ocamlopt)))
+
+(executable
+  (name main)
+  (modes (byte exe))
+  (modules main maindriver compile)
+  (libraries utils identifiers driver_shared compiler_env bytecomp compiler_lambda)
+  (flags :standard -open Bytecomp -w -9)
+  )
+
+(install
+ (section bin)
+ (files (main.bc as ocamlc)))
+
+(install
+ (section bin)
+ (files (main.exe as ocamlc.opt)))
+
+(library
+  (name driver_shared)
+  (modules main_args compenv makedepend pparse compmisc compile_common)
+  (wrapped false)
+  (libraries utils identifiers compiler_env compiler_parsing typing_types typing compiler_typedtree)
+  (flags :standard -w -9)
+  )

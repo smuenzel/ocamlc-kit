@@ -1,0 +1,6 @@
+(library
+   (name cmo_format)
+   (libraries utils compiler_parsing typing_types compiler_lambda identifiers)
+   (flags :standard -w -9)
+   (modules_without_implementation cmo_format)
+   )

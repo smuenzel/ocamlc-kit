@@ -31,7 +31,7 @@ let (|>>) (x, y) f = (x, f y)
 
 (** Native compilation backend for .ml files. *)
 
-let flambda i backend Typedtree.{structure; coercion; _} =
+let flambda platform i backend Typedtree.{structure; coercion; _} =
   if !Clflags.classic_inlining then begin
     Clflags.default_simplify_rounds := 1;
     Clflags.use_inlining_arguments_set Clflags.classic_arguments;
@@ -58,6 +58,7 @@ let flambda i backend Typedtree.{structure; coercion; _} =
         }
       in
       Asmgen.compile_implementation
+        platform
         ~backend
         ~prefixname:i.output_prefix
         ~middle_end:Flambda_middle_end.lambda_to_clambda
@@ -65,7 +66,7 @@ let flambda i backend Typedtree.{structure; coercion; _} =
         program);
     Compilenv.save_unit_info (cmx i))
 
-let clambda i backend Typedtree.{structure; coercion; _} =
+let clambda platform i backend Typedtree.{structure; coercion; _} =
   Clflags.use_inlining_arguments_set Clflags.classic_arguments;
   (structure, coercion)
   |> Profile.(record transl)
@@ -77,6 +78,7 @@ let clambda i backend Typedtree.{structure; coercion; _} =
        { program with Lambda.code }
        |> print_if i.ppf_dump Clflags.dump_lambda Printlambda.program
        |> Asmgen.compile_implementation
+            platform
             ~backend
             ~prefixname:i.output_prefix
             ~middle_end:Closure_middle_end.lambda_to_clambda
@@ -84,20 +86,20 @@ let clambda i backend Typedtree.{structure; coercion; _} =
        Compilenv.save_unit_info (cmx i))
 
 (* Emit assembly directly from Linear IR *)
-let emit i =
+let emit platform i =
   Compilenv.reset ?packname:!Clflags.for_package i.module_name;
-  Asmgen.compile_implementation_linear i.output_prefix ~progname:i.source_file
+  Asmgen.compile_implementation_linear platform i.output_prefix ~progname:i.source_file
 
-let implementation ~backend ~start_from ~source_file ~output_prefix =
+let implementation platform ~backend ~start_from ~source_file ~output_prefix =
   let backend info typed =
     Compilenv.reset ?packname:!Clflags.for_package info.module_name;
     if Config.flambda
-    then flambda info backend typed
-    else clambda info backend typed
+    then flambda platform info backend typed
+    else clambda platform info backend typed
   in
   with_info ~source_file ~output_prefix ~dump_ext:"cmx" @@ fun info ->
   match (start_from:Clflags.Compiler_pass.t) with
   | Parsing -> Compile_common.implementation info ~backend
-  | Emit -> emit info
+  | Emit -> emit platform info
   | _ -> Misc.fatal_errorf "Cannot start from %s"
            (Clflags.Compiler_pass.to_string start_from)

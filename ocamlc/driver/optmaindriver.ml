@@ -15,6 +15,14 @@
 
 open Clflags
 
+let platform =
+  Asmcomp_platform.read_environment ()
+  |> Asmcomp_platform.platform
+
+module Platform = (val platform)
+
+open Platform
+
 module Backend = struct
   (* See backend_intf.mli. *)
 
@@ -32,7 +40,6 @@ module Backend = struct
     Proc.max_arguments_for_tailcalls - 1
 end
 let backend = (module Backend : Backend_intf.S)
-
 
 module Options = Main_args.Make_optcomp_options (Main_args.Default.Optmain)
 let main argv ppf =
@@ -52,7 +59,7 @@ let main argv ppf =
     begin try
       Compenv.process_deferred_actions
         (ppf,
-         Optcompile.implementation ~backend,
+         Optcompile.implementation platform ~backend,
          Optcompile.interface,
          ".cmx",
          ".cmxa");
@@ -94,7 +101,7 @@ let main argv ppf =
       Compmisc.init_path ();
       let target = Compenv.extract_output !output_name in
       Compmisc.with_ppf_dump ~file_prefix:target (fun ppf_dump ->
-        Asmpackager.package_files ~ppf_dump (Compmisc.initial_env ())
+        Asmpackager.package_files platform ~ppf_dump (Compmisc.initial_env ())
           (Compenv.get_objfiles ~with_ocamlparam:false) target ~backend);
       Warnings.check_fatal ();
     end
@@ -102,7 +109,7 @@ let main argv ppf =
       Compmisc.init_path ();
       let target = Compenv.extract_output !output_name in
       Compmisc.with_ppf_dump ~file_prefix:target (fun ppf_dump ->
-        Asmlink.link_shared ~ppf_dump
+        Asmlink.link_shared platform ~ppf_dump
           (Compenv.get_objfiles ~with_ocamlparam:false) target);
       Warnings.check_fatal ();
     end
@@ -126,7 +133,7 @@ let main argv ppf =
       Compmisc.init_path ();
       Compmisc.with_ppf_dump ~file_prefix:target (fun ppf_dump ->
           let objs = Compenv.get_objfiles ~with_ocamlparam:true in
-          Asmlink.link ~ppf_dump objs target);
+          Asmlink.link platform ~ppf_dump objs target);
       Warnings.check_fatal ();
     end;
   with

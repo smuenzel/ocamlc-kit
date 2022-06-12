@@ -12,6 +12,20 @@
 ;*                                                                        *
 ;**************************************************************************
 
+(library
+  (name bytecomp)
+  (libraries
+    utils
+    compiler_lambda
+    identifiers
+    cmo_format
+    compiler_env
+    typing_types
+    compiler_parsing
+    typing)
+  (flags :standard -w -9)
+  )
+
 (rule
  (targets opcodes.ml)
  (mode    fallback)

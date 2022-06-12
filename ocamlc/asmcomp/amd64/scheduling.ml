@@ -1,4 +1,3 @@
-# 2 "asmcomp/amd64/scheduling.ml"
 (**************************************************************************)
 (*                                                                        *)
 (*                                 OCaml                                  *)
@@ -15,6 +14,9 @@
 (**************************************************************************)
 
 open! Schedgen (* to create a dependency *)
+
+type addressing_mode = Arch.addressing_mode
+type specific_operation = Arch.specific_operation
 
 (* Scheduling is turned off because the processor schedules dynamically
    much better than what we could do. *)
