@@ -15,4 +15,11 @@
 
 (* Insert load/stores for pseudoregs that got assigned to stack locations. *)
 
-val fundecl: Mach.fundecl -> int array -> Mach.fundecl * bool
+module type S = sig
+  type addressing_mode
+  type specific_operation
+
+  val fundecl 
+    : ((addressing_mode, specific_operation) Mach.fundecl as 'f)
+    -> int array -> 'f * bool
+end

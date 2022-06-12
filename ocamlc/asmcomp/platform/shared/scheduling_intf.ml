@@ -15,4 +15,11 @@
 
 (* Instruction scheduling *)
 
-val fundecl: Linear.fundecl -> Linear.fundecl
+module type S = sig
+  type addressing_mode
+  type specific_operation
+
+  val fundecl
+    : ((addressing_mode, specific_operation) Linear.fundecl as 'f)
+    -> 'f
+end

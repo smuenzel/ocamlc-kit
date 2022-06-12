@@ -16,5 +16,12 @@
 (* Selection of pseudo-instructions, assignment of pseudo-registers,
    sequentialization. *)
 
-val fundecl: future_funcnames:Misc.Stdlib.String.Set.t
-    -> Cmm.fundecl -> Mach.fundecl
+module type S = sig
+  type addressing_mode
+  type specific_operation
+
+  val fundecl
+    :  future_funcnames:Misc.Stdlib.String.Set.t
+    -> Cmm.fundecl
+    -> (addressing_mode, specific_operation) Mach.fundecl
+end
