@@ -1,5 +1,6 @@
 (library
    (name typing_types)
+   (package ocamlc_kit)
    (wrapped false)
    (libraries utils identifiers compiler_parsing)
    (flags :standard -w -9)

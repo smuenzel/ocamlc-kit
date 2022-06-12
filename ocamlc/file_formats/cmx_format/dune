@@ -1,5 +1,6 @@
 (library
    (name cmx_format)
+   (package ocamlc_kit)
    (libraries utils compiler_parsing typing_types compiler_clambda middle_end_flambda_base_types)
    (flags :standard -open Middle_end_flambda_base_types -w -9)
    (modules_without_implementation cmx_format)

@@ -1,5 +1,6 @@
 (library
   (name middle_end_identifiers)
+  (package ocamlc_kit)
   (libraries utils identifiers compiler_lambda compiler_clambda)
   (flags :standard -w -9)
   )

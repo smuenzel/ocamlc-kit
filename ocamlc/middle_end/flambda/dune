@@ -1,5 +1,6 @@
 (library
   (name middle_end_flambda)
+  (package ocamlc_kit)
   (libraries compiler_lambda typing_types compiler_parsing identifiers middle_end_identifiers middle_end_flambda_base_types compiler_clambda middle_end_shared)
   (flags :standard -open Middle_end_identifiers -open  Middle_end_flambda_base_types -open Middle_end_shared -w -9)
   (modules_without_implementation inlining_decision_intf simplify_boxed_integer_ops_intf)

@@ -1,5 +1,6 @@
 (library
   (name arch_amd64)
+  (package ocamlc_kit)
   (libraries utils asmcomp_lang asmcomp_platform_shared arch_x86_shared middle_end_shared compiler_lambda)
   (flags :standard -open Asmcomp_platform_shared -open Arch_x86_shared -open Middle_end_shared -w -9)
   (preprocess (pps ppx_jane))

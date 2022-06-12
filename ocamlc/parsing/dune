@@ -45,6 +45,7 @@
 
 (library
    (name compiler_parsing)
+   (package ocamlc_kit)
    (wrapped false)
    (libraries utils identifiers)
    (flags :standard -w -9)

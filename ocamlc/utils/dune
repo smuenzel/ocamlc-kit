@@ -47,6 +47,7 @@
 
 (library
    (name utils)
+   (package ocamlc_kit)
    (wrapped false)
    (libraries)
    )

@@ -1,5 +1,6 @@
 (library
   (name middle_end_shared)
+  (package ocamlc_kit)
   (libraries utils identifiers compiler_lambda cmx_format middle_end_flambda_base_types middle_end_identifiers compiler_clambda compiler_env)
   (flags :standard -open Middle_end_flambda_base_types -open Middle_end_identifiers -w -9)
   (modules_without_implementation backend_intf)

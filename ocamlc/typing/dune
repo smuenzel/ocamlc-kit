@@ -1,5 +1,6 @@
 (library
    (name typing)
+   (package ocamlc_kit)
    (wrapped false)
    (libraries utils compiler_parsing typing_types cmi_format compiler_env compiler_typedtree cmt_format identifiers)
    (flags :standard -w -9)

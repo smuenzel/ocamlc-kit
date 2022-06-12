@@ -1,5 +1,6 @@
 (library
   (name identifiers)
+  (package ocamlc_kit)
   (wrapped false)
   (libraries utils)
   (flags :standard -w -9)

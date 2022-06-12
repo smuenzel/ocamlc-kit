@@ -1,5 +1,6 @@
 (library
    (name compiler_env)
+   (package ocamlc_kit)
    (wrapped false)
    (libraries utils typing_types compiler_parsing cmi_format identifiers)
    (flags :standard -open Cmi_format -w -9)

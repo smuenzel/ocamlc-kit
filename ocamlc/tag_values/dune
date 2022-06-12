@@ -1,4 +1,5 @@
 (library
    (name tag_values)
+   (package ocamlc_kit)
    (libraries)
    )

@@ -1,5 +1,6 @@
 (library
   (name asmcomp_lang)
+  (public_name ocamlc_kit.internal.asmcomp_lang)
   (wrapped false)
   (libraries compiler_lambda identifiers compiler_parsing)
   (flags :standard -w -9)

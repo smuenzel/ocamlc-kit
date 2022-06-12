@@ -1,5 +1,6 @@
 (library
    (name cmt_format)
+   (package ocamlc_kit)
    (libraries utils compiler_parsing typing_types compiler_typedtree compiler_env identifiers)
    (flags :standard -w -9)
    )

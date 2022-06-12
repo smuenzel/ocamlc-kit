@@ -1,5 +1,6 @@
 (library
   (name linear_format)
+  (package ocamlc_kit)
   (libraries asmcomp_lang identifiers)
   (flags :standard -w -9)
   )
