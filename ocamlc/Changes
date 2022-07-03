@@ -3,6 +3,9 @@ Working version
 
 ### Language features:
 
+- #9975, #11365: Make empty types (`type t = |`) immediate.
+  (Antal Spector-Zabusky, review by Gabriel Scherer)
+
 ### Runtime system:
 
 ### Code generation and optimizations:
@@ -20,7 +23,13 @@ Working version
 
 ### Compiler user-interface and warnings:
 
+- #11338: Turn some partial application warnings into hints.
+  (Leo White, review by Stephen Dolan)
+
 ### Internal/compiler-libs changes:
+
+- #11364: Allow `make -C testsuite promote` to take `TEST` and `LIST` variables
+  (Antal Spector-Zabusky, review by Gabriel Scherer and David Allsopp)
 
 ### Build system:
 
@@ -32,6 +41,7 @@ OCaml 5.0
 ### Language features:
 
 ### Runtime system:
+
 - #11308: Add environment variable to preserve runtime_events after exit
   If the environment variable OCAML_RUNTIME_EVENTS_PRESERVE exists then the
   runtime will not remove the runtime events ring buffers at exit. This
@@ -111,7 +121,7 @@ OCaml 5.0
   (Enguerrand Decorne, report by Jon Ludlam,
   review by Tom Kelly, KC Sivaramakrishnan and Gabriel Scherer)
 
-- #11238: Increase the default limit on the stack size to 128 Mi words,
+- #11238: Increase the default limit for the stack size to 128 Mi words,
   i.e. 1 Gib for 64-bit platforms and 512 Mib for 32-bit platforms.
   (Xavier Leroy, review by Sébastien Hinderer)
 
@@ -123,6 +133,19 @@ OCaml 5.0
   asynchronous actions in multicore. Reimplement the old behaviour of
   `caml_process_pending*` for multicore.
   (Guillaume Munch-Maccagnoni, review by Sadiq Jaffer and Gabriel Scherer)
+
+- #11304: Fix data race on Windows file descriptors
+  (Olivier Nicole and Xavier Leroy, review by Xavier Leroy, David Allsopp,
+   and Sadiq Jaffer)
+
+* #11337: pass 'flags' metadata to root scanners, to optimize stack
+  scanning in the bytecode interpreter.
+  Changes the interface of user-provided root-scanning hooks.
+  (Gabriel Scherer, review by Xavier Leroy,
+   Guillaume Munch-Maccagnoni, Sadiq Jaffer and Tom Kelly)
+
+- #11144: Restore frame-pointers support for amd64
+  (Fabrice Buoro, review by Frederic Bour and KC Sivaramakrishnan)
 
 ### Code generation and optimizations:
 
@@ -143,7 +166,7 @@ OCaml 5.0
   another PRNG.
   (Xavier Leroy, review by Gabriel Scherer and Hugo Heuzard)
 
-* #10867: Remove deprecated values: Array.create, Array.make_float,
+* #10867, #11345: Remove deprecated values: Array.create, Array.make_float,
   Array.create_matrix, Bytes.uppercase, Bytes.lowercase, Bytes.capitalize,
   Bytes.uncapitalize, Char.lowercase, Char.uppercase, Filename.temp_dir_name,
   Int32.format, Int64.format, Nativeint.format, Format.bprintf, Format.kprintf,
@@ -161,7 +184,8 @@ OCaml 5.0
   Scanf.kfscanf, Stdlib.( & ), Stdlib.( or ), String.set, String.copy,
   String.fill, String.unsafe_set, String.unsafe_fill, String.uppercase,
   String.lowercase, String.capitalize, String.uncapitalize, Thread.kill,
-  Thread.wait_write, Thread.wait_read, the whole ThreadUnix module.
+  Thread.wait_write, Thread.wait_read, the whole ThreadUnix module, the
+  infix operator (.[]<-).
   (Nicolás Ojeda Bär, review by Damien Doligez)
 
 * #10896: Remove Stream, Genlex and Pervasives. Also remove legacy standalone
@@ -220,6 +244,9 @@ OCaml 5.0
   the tag for the documentation). Every other alerts also appear in the
   documentation.
   (Jules Aguillon, review by Florian Angeletti)
+
+- #11065: Port the bytecode debugger to 5.0, adding support for effect handlers.
+  (Damien Doligez and @fabbing, review by @fabbing and Xavier Leroy)
 
 - #11079: Add the -nobanners option to dumpobj.
   (Sébastien Hinderer, review by Gabriel Scherer and Vincent Laviron)
@@ -289,6 +316,12 @@ OCaml 5.0
 - #11199: Stop installing topdirs.cmi twice. The toplevel now reads topdirs.cmi
   from +compiler-libs, as the debugger does.
   (David Allsopp, review by Sébastien Hinderer)
+
+- #11007: META files for the stdlib, compiler-libs and other libraries (unix,
+  dynlink, str, runtime_events, threads, ocamldoc) are now installed along with
+  the compiler.
+  (David Allsopp, Florian Angeletti, Nicolás Ojeda Bär and Sébastien Hinderer,
+   review by Daniel Bünzli, Kate Deplaix, Anil Madhavapeddy and Gabriel Scherer)
 
 ### Build system:
 
@@ -377,6 +410,9 @@ OCaml 5.0
   socket and deadlock the parent.
   (Antonin Décimo, review by Xavier Leroy)
 
+- #11186, #11188: Fix composition of coercions with aliases
+  (Vincent Laviron, report and review by Leo White)
+
 - #11204: Fix regression introduced in 4.14.0 that would trigger Warning 17 when
   calling virtual methods introduced by constraining the self type from within
   the class definition.
@@ -388,6 +424,9 @@ OCaml 5.0
   (David Allsopp and Nicolás Ojeda Bär, review by Nicolás Ojeda Bär and
    Sebastien Hinderer)
 
+- #11358, #11379: Refactor the initialization of bytecode threading,
+  This avoids a "dangling pointer" warning of GCC 12.1.
+  (Xavier Leroy, report by Armaël Guéneau, review by Gabriel Scherer)
 
 OCaml 4.14.0
 ----------------

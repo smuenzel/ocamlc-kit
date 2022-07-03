@@ -36,6 +36,7 @@
     typing
     arch_amd64
     asmcomp_platform_shared)
+  (modules_without_implementation branch_relaxation_intf)
   (flags
     :standard
     -open Middle_end_shared
