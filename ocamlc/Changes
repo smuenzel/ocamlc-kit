@@ -15,6 +15,13 @@ Working version
 - #11128: Add In_channel.isatty, Out_channel.isatty.
   (Nicolás Ojeda Bär, review by Gabriel Scherer and Florian Angeletti)
 
+- #10789: Add `Stack.drop`
+  (Léo Andrès, review by Gabriel Scherer)
+
+- #11362: List.map, List.mapi and List.map2 are tail-recursive and faster on
+  typical workloads.
+  (Nicolás Ojeda Bär, review by Gabriel Scherer)
+
 ### Other libraries:
 
 ### Tools:
@@ -34,6 +41,10 @@ Working version
 ### Build system:
 
 ### Bug fixes:
+
+- #10348: Expand GADT equations lazily during unification to avoid ambiguity
+  (Jacques Garrigue, review by Leo White)
+
 
 OCaml 5.0
 ---------
@@ -232,6 +243,10 @@ OCaml 5.0
   Unix module.
   (Nicolás Ojeda Bär, review by Anil Madhavapeddy)
 
+- #11309: Add Domain.recommended_domain_count.
+  (Christiano Haesbaert, review by David Allsopp, KC Sivaramakrishnan,
+  Gabriel Scherer, Nicolas Ojeda Bar)
+
 ### Tools:
 
 * #11004: Litmus tests for checking the implementation of the
@@ -257,6 +272,11 @@ OCaml 5.0
 
 - #11245: Merge the common code of ocamlcp and ocamloptp into a single module.
   (David Allsopp, review by Sébastien Hinderer)
+
+- #11382: OCamlmktop use a new initialization module "OCamlmktop_init" to
+  preserve backward-compatibility with user-module provided modules that install
+  toplevel printers.
+  (Florian Angeletti, review by Gabriel Scherer and David Allsopp)
 
 ### Manual and documentation:
 
@@ -311,7 +331,7 @@ OCaml 5.0
   (Gabriel Scherer, review by Enguerrand Decorne)
 
 - #11058: basic debugging documentation in runtime/HACKING.adoc
-  (Gabriel Scherer, review by ???)
+  (Gabriel Scherer, review by Enguerrand Decorne and Nicolás Ojeda Bär)
 
 - #11199: Stop installing topdirs.cmi twice. The toplevel now reads topdirs.cmi
   from +compiler-libs, as the debugger does.
@@ -428,8 +448,15 @@ OCaml 5.0
   This avoids a "dangling pointer" warning of GCC 12.1.
   (Xavier Leroy, report by Armaël Guéneau, review by Gabriel Scherer)
 
-OCaml 4.14.0
-----------------
+- #11387, module type with constraints no longer crash the compiler in presence
+  of both shadowing warnings and the `-bin-annot` compiler flag.
+  (Florian Angeletti, report by Christophe Raffalli, review by Gabriel Scherer)
+
+- #11392, #11392: assertion failure with -rectypes and external definitions
+  (Gabriel Scherer, review by Florian Angeletti, report by Dmitrii Kosarev)
+
+OCaml 4.14.0 (28 March 2022)
+----------------------------
 
 ### Language features:
 
@@ -587,7 +614,8 @@ OCaml 4.14.0
   WSADuplicateSocket on sockets instead of DuplicateHandle.
   (Antonin Décimo, review by Xavier Leroy and Nicolás Ojeda Bär)
 
-* #10926: Ensure all C functions in the Unix library are prefixed with `caml_`.
+* #10926, #11336: Ensure all C functions in the Unix library are prefixed with
+  `caml_`.
   (David Allsopp, review by Kate Deplaix, Damien Doligez and Xavier Leroy)
 
 - #10951: Introduce the Thread.Exit exception as an alternative way to
