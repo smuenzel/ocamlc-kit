@@ -1,11 +1,11 @@
-camlStack_realloc__callback
+camlStack_realloc2.callback
 caml_start_program
 caml_callback
 c_fun
 caml_c_call
-camlStack_realloc__f_comp
+camlStack_realloc2.f_comp
 caml_runstack
-camlStack_realloc__entry
+camlStack_realloc2.entry
 caml_program
 caml_start_program
 main
