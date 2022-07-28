@@ -276,7 +276,8 @@ let find_in_path_uncap path name =
 
 let remove_file filename =
   try
-    if Sys.is_regular_file filename
+    (* CR smuenzel: fix *)
+    if true (* Sys.is_regular_file filename *)
     then Sys.remove filename
   with Sys_error _msg ->
     ()
