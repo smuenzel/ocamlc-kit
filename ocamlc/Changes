@@ -10,6 +10,9 @@ Working version
   construct.
   (Nicolás Ojeda Bär)
 
+- #11457: Remove old polymorphic variant syntax.
+  (Stefan Muenzel, review by Gabriel Scherer and Jacques Garrigue)
+
 ### Runtime system:
 
 ### Code generation and optimizations:
@@ -75,7 +78,14 @@ Working version
 - #11338: Turn some partial application warnings into hints.
   (Leo White, review by Stephen Dolan)
 
+- #10911: Improve the location reported by parenthesized assert expressions
+  (Fabian Hemmer, review by Gabriel Scherer)
+
 ### Internal/compiler-libs changes:
+
+- #11018: Clean up Types.Variance, adding a description of the lattice used,
+  and defining explicitly composition.
+  (Jacques Garrigue, review by Gabriel Scherer)
 
 - #11364: Allow `make -C testsuite promote` to take `TEST` and `LIST` variables
   (Antal Spector-Zabusky, review by Gabriel Scherer and David Allsopp)
@@ -94,6 +104,9 @@ Working version
 - #10348: Expand GADT equations lazily during unification to avoid ambiguity
   (Jacques Garrigue, review by Leo White)
 
+- #11436: Fix wrong stack backtrace for out-of-bound exceptions raised
+  by leaf functions.
+  (Tom Kelly and Xavier Leroy, review by Mark Shinwell)
 
 OCaml 5.0
 ---------
@@ -195,6 +208,11 @@ OCaml 5.0
   i.e. 1 Gib for 64-bit platforms and 512 Mib for 32-bit platforms.
   (Xavier Leroy, review by Sébastien Hinderer)
 
+- #11284: Use compression of entries scheme when pruning mark stack.
+  Can decrease memory usage for some workloads, otherwise should be
+  unobservable.
+  (Tom Kelly, review by Sabine Schmaltz, Sadiq Jaffer and Damien Doligez)
+
 * #11295: An ISO C 2011 compliant compiler, including full support for atomic
   types, is now required to build the OCaml runtime system.
   (Xavier Leroy, review by David Allsopp and Sébastien Hinderer)
@@ -203,6 +221,9 @@ OCaml 5.0
   asynchronous actions in multicore. Reimplement the old behaviour of
   `caml_process_pending*` for multicore.
   (Guillaume Munch-Maccagnoni, review by Sadiq Jaffer and Gabriel Scherer)
+
+- #11303: Ensure that GC is not invoked from bounds check failures
+  (Stephen Dolan, review by Sadiq Jaffer and Xavier Leroy)
 
 - #11304: Fix data race on Windows file descriptors
   (Olivier Nicole and Xavier Leroy, review by Xavier Leroy, David Allsopp,
