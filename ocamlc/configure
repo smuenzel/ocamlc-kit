@@ -13083,6 +13083,7 @@ esac
     CC="$flexlink -chain $flexdll_chain -exe"
     LIBS="conftest2.$ac_objext"
     CPPFLAGS="$internal_cppflags $CPPFLAGS"
+    CFLAGS=""
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 int main() { return 0; }
@@ -18213,6 +18214,8 @@ case $host in #(
     $as_echo "#define HAS_BROKEN_PRINTF 1" >>confdefs.h
 
     $as_echo "#define HAS_STRERROR 1" >>confdefs.h
+
+    $as_echo "#define HAS_IPV6 1" >>confdefs.h
 
     $as_echo "#define HAS_NICE 1" >>confdefs.h
  ;; #(

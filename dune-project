@@ -6,4 +6,3 @@
 (package
    (name ocamlc_kit)
    )
-
