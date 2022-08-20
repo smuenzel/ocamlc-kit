@@ -2,25 +2,25 @@
   (name ocamlc_kit)
   (public_name ocamlc_kit)
   (libraries
-    utils
-    compiler_lambda
-    cmx_format
-    identifiers
-    compiler_parsing
-    compiler_clambda
-    middle_end_shared
-    typing_types
-    middle_end_flambda_base_types
-    compiler_env
-    cmxs_format
-    middle_end_flambda
-    middle_end_closure
-    middle_end_identifiers
-    linear_format
+    arch_amd64
     asmcomp_lang
     asmcomp_platform
     asmcomp_platform_shared
+    cmx_format
+    cmxs_format
+    compiler_clambda
+    compiler_env
+    compiler_lambda
+    compiler_parsing
+    identifiers
+    linear_format
+    middle_end_closure
+    middle_end_flambda
+    middle_end_flambda_base_types
+    middle_end_identifiers
+    middle_end_shared
     typing
-    arch_amd64
+    typing_types
+    utils
     )
   )
