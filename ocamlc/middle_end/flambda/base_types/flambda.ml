@@ -20,10 +20,12 @@ open! Int_replace_polymorphic_compare
 type call_kind =
   | Indirect
   | Direct of Closure_id.t
+[@@deriving sexp_of]
 
 type const =
   | Int of int
   | Char of char
+[@@deriving sexp_of]
 
 type apply = {
   func : Variable.t;
@@ -32,12 +34,12 @@ type apply = {
   dbg : Debuginfo.t;
   inline : Lambda.inline_attribute;
   specialise : Lambda.specialise_attribute;
-}
+} [@@deriving sexp_of]
 
 type assign = {
   being_assigned : Mutable_variable.t;
   new_value : Variable.t;
-}
+} [@@deriving sexp_of]
 
 type send = {
   kind : Lambda.meth_kind;
@@ -45,16 +47,16 @@ type send = {
   obj : Variable.t;
   args : Variable.t list;
   dbg : Debuginfo.t;
-}
+} [@@deriving sexp_of]
 
-type project_closure = Projection.project_closure
-type move_within_set_of_closures = Projection.move_within_set_of_closures
-type project_var = Projection.project_var
+type project_closure = Projection.project_closure [@@deriving sexp_of]
+type move_within_set_of_closures = Projection.move_within_set_of_closures [@@deriving sexp_of]
+type project_var = Projection.project_var [@@deriving sexp_of]
 
 type specialised_to = {
   var : Variable.t;
   projection : Projection.t option;
-}
+} [@@deriving sexp_of]
 
 type t =
   | Var of Variable.t
@@ -155,6 +157,8 @@ and constant_defining_value =
 and constant_defining_value_block_field =
   | Symbol of Symbol.t
   | Const of const
+
+[@@deriving sexp_of]
 
 type expr = t
 
@@ -1204,10 +1208,10 @@ let compare_constant_defining_value_block_field
   | Const _, Symbol _ -> 1
 
 module Constant_defining_value = struct
-  type t = constant_defining_value
+  type t = constant_defining_value [@@deriving sexp_of]
 
   include Identifiable.Make (struct
-    type nonrec t = t
+    type nonrec t = t [@@deriving sexp_of]
 
     let compare (t1 : t) (t2 : t) =
       match t1, t2 with

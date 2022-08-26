@@ -30,6 +30,7 @@ type t =
   | Immutable_float_array of float list
   | String of string
   | Immutable_string of string
+[@@deriving sexp_of]
 
 val compare_floats : float -> float -> int
 

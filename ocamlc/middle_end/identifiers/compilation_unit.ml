@@ -21,12 +21,12 @@ type t = {
   id : Ident.t;
   linkage_name : Linkage_name.t;
   hash : int;
-}
+} [@@deriving sexp_of]
 
 let string_for_printing t = Ident.name t.id
 
 include Identifiable.Make (struct
-  type nonrec t = t
+  type nonrec t = t [@@deriving sexp_of]
 
   (* Multiple units can have the same [id] if they come from different packs.
      To distinguish these we also keep the linkage name, which contains the

@@ -138,9 +138,11 @@ type value_unbound_reason =
   | Val_unbound_self
   | Val_unbound_ancestor
   | Val_unbound_ghost_recursive of Location.t
+[@@deriving sexp_of]
 
 type module_unbound_reason =
   | Mod_unbound_illegal_recursion
+[@@deriving sexp_of]
 
 type summary =
     Env_empty
@@ -158,6 +160,7 @@ type summary =
   | Env_persistent of summary * Ident.t
   | Env_value_unbound of summary * string * value_unbound_reason
   | Env_module_unbound of summary * string * module_unbound_reason
+[@@deriving sexp_of]
 
 let map_summary f = function
     Env_empty -> Env_empty
@@ -179,6 +182,7 @@ let map_summary f = function
 type address =
   | Aident of Ident.t
   | Adot of address * int
+[@@deriving sexp_of]
 
 module TycompTbl =
   struct
@@ -210,7 +214,7 @@ module TycompTbl =
 
       next: 'a t;
       (** The table before opening the module. *)
-    }
+    } [@@deriving sexp_of]
 
     let empty = { current = Ident.empty; opened = None }
 
@@ -342,6 +346,8 @@ module IdTbl =
         }
 
       | Nothing
+
+    [@@deriving sexp_of]
 
     let empty = { current = Ident.empty; layer = Nothing }
 
@@ -487,8 +493,9 @@ module IdTbl =
 
 type type_descr_kind =
   (label_description, constructor_description) type_kind
+[@@deriving sexp_of]
 
-type type_descriptions = type_descr_kind
+type type_descriptions = type_descr_kind [@@deriving sexp_of]
 
 let in_signature_flag = 0x01
 
@@ -512,9 +519,10 @@ and module_components =
     alerts: alerts;
     uid: Uid.t;
     comps:
-      (components_maker,
+      ((components_maker,
        (module_components_repr, module_components_failure) result)
-        Lazy_backtrack.t;
+         Lazy_backtrack.t [@sexp.opaque])
+  ;
   }
 
 and components_maker = {
@@ -604,6 +612,8 @@ and class_data =
 and cltype_data =
   { cltda_declaration : class_type_declaration;
     cltda_shape : Shape.t }
+
+[@@deriving sexp_of]
 
 let empty_structure =
   Structure_comps {

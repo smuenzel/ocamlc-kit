@@ -15,7 +15,7 @@
 (**************************************************************************)
 
 module Int_base = Identifiable.Make (struct
-  type t = int
+  type t = int [@@deriving sexp_of]
 
   let compare x y = x - y
   let output oc x = Printf.fprintf oc "%i" x
@@ -77,7 +77,7 @@ module Float = struct
   type t = float
 
   include Identifiable.Make (struct
-    type t = float
+    type t = float [@@deriving sexp_of]
 
     let compare x y = Stdlib.compare x y
     let output oc x = Printf.fprintf oc "%f" x

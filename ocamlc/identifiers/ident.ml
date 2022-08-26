@@ -317,6 +317,13 @@ let rec fold_data f d accu =
 let fold_all f tbl accu =
   fold_aux (fun k -> fold_data f (Some k)) [] accu tbl
 
+let sexp_of_tbl sexp_of_a tbl =
+  fold_all
+    (fun key data acc -> (key, data) :: acc)
+    tbl
+    []
+  |> [%sexp_of: (t * a) list]
+
 (* let keys tbl = fold_name (fun k _ accu -> k::accu) tbl [] *)
 
 let rec iter f = function
@@ -364,7 +371,7 @@ let hash i = (Char.code (name i).[0]) lxor (stamp i)
 
 let original_equal = equal
 include Identifiable.Make (struct
-  type nonrec t = t
+  type nonrec t = t [@@deriving sexp_of]
   let compare = compare
   let output = output
   let print = print

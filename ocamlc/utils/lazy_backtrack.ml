@@ -19,6 +19,7 @@ and ('a,'b) eval =
   | Done of 'b
   | Raise of exn
   | Thunk of 'a
+[@@deriving sexp_of]
 
 type undo =
   | Nil

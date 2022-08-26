@@ -18,7 +18,7 @@
 open! Int_replace_polymorphic_compare
 
 module type BaseId = sig
-  type t
+  type t [@@deriving sexp_of]
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val hash : t -> int
@@ -41,7 +41,7 @@ module type UnitId = sig
 end
 
 module Id() : Id = struct
-  type t = int * string
+  type t = int * string [@@deriving sexp_of]
   let empty_string = ""
   let create = let r = ref 0 in
     fun  ?(name=empty_string) () -> incr r; !r, name
@@ -65,7 +65,7 @@ module UnitId(Innerid:Id)(Compilation_unit:Identifiable.Thing) :
   type t = {
     id : Innerid.t;
     unit : Compilation_unit.t;
-  }
+  } [@@deriving sexp_of]
   let compare x y =
     let c = Innerid.compare x.id y.id in
     if c <> 0

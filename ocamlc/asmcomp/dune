@@ -14,7 +14,7 @@
 
 (library
   (name asmcomp)
-  (package ocamlc_kit)
+  (public_name ocamlc_kit.internal.asmcomp)
   (libraries
     utils
     compiler_lambda

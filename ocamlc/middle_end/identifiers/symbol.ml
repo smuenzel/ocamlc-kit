@@ -26,6 +26,7 @@ type t =
   | Variable of
       { compilation_unit : Compilation_unit.t;
         variable : Variable.t; }
+[@@deriving sexp_of]
 
 let label t =
   match t with
@@ -43,7 +44,7 @@ let label t =
 
 include Identifiable.Make (struct
 
-  type nonrec t = t
+  type nonrec t = t [@@deriving sexp_of]
 
   let compare t1 t2 =
     if t1 == t2 then 0

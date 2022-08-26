@@ -29,6 +29,7 @@ module Scoped_location : sig
     | Loc_known of
         { loc : Location.t;
           scopes : scopes; }
+  [@@deriving sexp_of]
 
   val of_location : scopes:scopes -> Location.t -> t
   val to_location : t -> Location.t

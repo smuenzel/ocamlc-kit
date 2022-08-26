@@ -3,5 +3,6 @@
    (public_name ocamlc_kit.internal.compiler_env)
    (wrapped false)
    (libraries utils typing_types compiler_parsing cmi_format identifiers)
-   (flags :standard -open Cmi_format -w -9)
+   (flags :standard -open Cmi_format -open Sexplib.Std -w -9)
+   (preprocess (pps ppx_sexp_conv))
    )

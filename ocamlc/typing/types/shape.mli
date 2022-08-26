@@ -75,6 +75,7 @@ and desc =
   | Leaf
   | Proj of t * Item.t
   | Comp_unit of string
+[@@deriving sexp_of]
 
 val print : Format.formatter -> t -> unit
 

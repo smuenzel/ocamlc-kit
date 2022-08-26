@@ -19,7 +19,7 @@
 open Asttypes
 open Lambda
 
-type function_label = string
+type function_label = string [@@deriving sexp_of]
 
 type ustructured_constant =
   | Uconst_float of float
@@ -91,6 +91,8 @@ and ulambda_switch =
     us_index_blocks: int array;
     us_actions_blocks: ulambda array}
 
+[@@deriving sexp_of]
+
 (* Description of known functions *)
 
 type function_description =
@@ -116,11 +118,12 @@ type value_approximation =
 type usymbol_provenance = {
   original_idents : Ident.t list;
   module_path : Path.t;
-}
+} [@@deriving sexp_of]
 
 type uconstant_block_field =
   | Uconst_field_ref of string
   | Uconst_field_int of int
+[@@deriving sexp_of]
 
 type preallocated_block = {
   symbol : string;
@@ -128,17 +131,18 @@ type preallocated_block = {
   tag : int;
   fields : uconstant_block_field option list;
   provenance : usymbol_provenance option;
-}
+} [@@deriving sexp_of]
 
 type preallocated_constant = {
   symbol : string;
   exported : bool;
   definition : ustructured_constant;
   provenance : usymbol_provenance option;
-}
+} [@@deriving sexp_of]
 
 type with_constants =
   ulambda * preallocated_block list * preallocated_constant list
+[@@deriving sexp_of]
 
 (* Comparison functions for constants.  We must not use Stdlib.compare
    because it compares "0.0" and "-0.0" equal.  (PR#6442) *)

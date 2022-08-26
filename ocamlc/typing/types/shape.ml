@@ -22,7 +22,7 @@ module Uid = struct
   [@@deriving sexp_of]
 
   include Identifiable.Make(struct
-    type nonrec t = t
+    type nonrec t = t [@@deriving sexp_of]
 
     let equal (x : t) y = x = y
     let compare (x : t) y = compare x y
@@ -73,6 +73,7 @@ module Sig_component_kind = struct
     | Extension_constructor
     | Class
     | Class_type
+  [@@deriving sexp_of]
 
   let to_string = function
     | Value -> "value"
@@ -97,7 +98,7 @@ end
 
 module Item = struct
   module T = struct
-    type t = string * Sig_component_kind.t
+    type t = string * Sig_component_kind.t [@@deriving sexp_of]
     let compare = compare
 
     let make str ns = str, ns
@@ -121,10 +122,18 @@ module Item = struct
 
   include T
 
-  module Map = Map.Make(T)
+  module Map = struct
+    include Map.Make(T)
+
+    let sexp_of_t sexp_of_a t =
+      let s = to_rev_seq t in
+      let res = ref [] in
+      Seq.iter (fun a -> res := a :: !res) s;
+      [%sexp_of: (T.t * a) list] !res
+  end
 end
 
-type var = Ident.t
+type var = Ident.t [@@deriving sexp_of]
 type t = { uid: Uid.t option; desc: desc }
 and desc =
   | Var of var
@@ -134,6 +143,7 @@ and desc =
   | Leaf
   | Proj of t * Item.t
   | Comp_unit of string
+[@@deriving sexp_of]
 
 let print fmt =
   let print_uid_opt =

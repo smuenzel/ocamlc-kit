@@ -3,6 +3,7 @@
   (public_name ocamlc_kit)
   (libraries
     arch_amd64
+    asmcomp
     asmcomp_lang
     asmcomp_platform
     asmcomp_platform_shared

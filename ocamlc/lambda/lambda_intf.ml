@@ -210,12 +210,14 @@ module T = struct
     | Const_block of int * structured_constant list
     | Const_float_array of string list
     | Const_immstring of string
+  [@@deriving sexp_of]
 
   type tailcall_attribute =
     | Tailcall_expectation of bool
     (* [@tailcall] and [@tailcall true] have [true],
        [@tailcall false] has [false] *)
     | Default_tailcall (* no [@tailcall] attribute *)
+  [@@deriving sexp_of]
 
   type inline_attribute =
     | Always_inline (* [@inline] or [@inline always] *)
@@ -223,24 +225,28 @@ module T = struct
     | Hint_inline (* [@inline hint] *)
     | Unroll of int (* [@unroll x] *)
     | Default_inline (* no [@inline] attribute *)
+  [@@deriving sexp_of]
 
   type specialise_attribute =
     | Always_specialise (* [@specialise] or [@specialise always] *)
     | Never_specialise (* [@specialise never] *)
     | Default_specialise (* no [@specialise] attribute *)
+  [@@deriving sexp_of]
 
   type local_attribute =
     | Always_local (* [@local] or [@local always] *)
     | Never_local (* [@local never] *)
     | Default_local (* [@local maybe] or no [@local] attribute *)
+  [@@deriving sexp_of]
 
   type poll_attribute =
     | Error_poll (* [@poll error] *)
     | Default_poll (* no [@poll] attribute *)
+  [@@deriving sexp_of]
 
-  type function_kind = Curried | Tupled
+  type function_kind = Curried | Tupled [@@deriving sexp_of]
 
-  type let_kind = Strict | Alias | StrictOpt
+  type let_kind = Strict | Alias | StrictOpt [@@deriving sexp_of]
   (* Meaning of kinds for let x = e in e':
       Strict: e may have side-effects; always evaluate e first
         (If e is a simple expression, e.g. a variable or constant,
@@ -251,7 +257,7 @@ module T = struct
         we can discard e if x does not appear in e'
   *)
 
-  type meth_kind = Self | Public | Cached
+  type meth_kind = Self | Public | Cached [@@deriving sexp_of]
 
   type shared_code = (int * int) list     (* stack size -> code label *)
 
@@ -263,9 +269,9 @@ module T = struct
     is_a_functor: bool;
     stub: bool;
     tmc_candidate: bool;
-  }
+  } [@@deriving sexp_of]
 
-  type scoped_location = Debuginfo.Scoped_location.t
+  type scoped_location = Debuginfo.Scoped_location.t [@@deriving sexp_of]
 
   type lambda =
       Lvar of Ident.t
@@ -331,6 +337,7 @@ module T = struct
     | Lev_function
     | Lev_pseudo
     | Lev_module_definition of Ident.t
+  [@@deriving sexp_of]
 
   type program =
     { module_ident : Ident.t;
@@ -338,6 +345,7 @@ module T = struct
       required_globals : Ident.Set.t;    (* Modules whose initializer side effects
                                             must occur before [code]. *)
       code : lambda }
+  [@@deriving sexp_of]
     (* Lambda code for the middle-end.
        * In the closure case the code is a sequence of assignments to a
          preallocated block of size [main_module_block_size] using

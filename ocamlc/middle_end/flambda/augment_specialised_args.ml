@@ -24,9 +24,10 @@ module Definition = struct
   type t =
     | Existing_inner_free_var of Variable.t
     | Projection_from_existing_specialised_arg of Projection.t
+  [@@deriving sexp_of]
 
   include Identifiable.Make (struct
-    type nonrec t = t
+    type nonrec t = t [@@deriving sexp_of]
 
     let compare t1 t2 =
       match t1, t2 with

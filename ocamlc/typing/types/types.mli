@@ -400,6 +400,8 @@ and method_privacy =
   | Mprivate of field_kind
     (* The [field_kind] is always [Fabsent] in a complete class type. *)
 
+[@@deriving sexp_of]
+
 (* Variance *)
 
 module Variance : sig
@@ -547,6 +549,8 @@ and type_transparence =
   | Type_new         (* "new" type *)
   | Type_private     (* private type *)
 
+[@@deriving sexp_of]
+
 (* Type expressions for the class language *)
 
 type class_type =
@@ -563,7 +567,7 @@ type class_declaration =
     cty_loc: Location.t;
     cty_attributes: Parsetree.attributes;
     cty_uid: Uid.t;
-  }
+  } [@@deriving sexp_of]
 
 type class_type_declaration =
   { clty_params: type_expr list;
@@ -573,13 +577,14 @@ type class_type_declaration =
     clty_loc: Location.t;
     clty_attributes: Parsetree.attributes;
     clty_uid: Uid.t;
-  }
+  } [@@deriving sexp_of]
 
 (* Type expressions for the module language *)
 
 type visibility =
   | Exported
   | Hidden
+[@@deriving sexp_of]
 
 type module_type =
     Mty_ident of Path.t
@@ -633,6 +638,8 @@ and ext_status =
   | Text_next                      (* not first constructor in an extension *)
   | Text_exception
 
+[@@deriving sexp_of]
+
 val item_visibility : signature_item -> visibility
 
 (* Constructor and record label descriptions inserted held in typing
@@ -662,6 +669,8 @@ and constructor_tag =
   | Cstr_extension of Path.t * bool     (* Extension constructor
                                            true if a constant false if a block*)
 
+[@@deriving sexp_of]
+
 (* Constructors are the same *)
 val equal_tag :  constructor_tag -> constructor_tag -> bool
 
@@ -681,7 +690,7 @@ type label_description =
     lbl_loc: Location.t;
     lbl_attributes: Parsetree.attributes;
     lbl_uid: Uid.t;
-  }
+  } [@@deriving sexp_of]
 
 (** Extracts the list of "value" identifiers bound by a signature.
     "Value" identifiers are identifiers for signature components that

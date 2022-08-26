@@ -62,7 +62,7 @@ val highest_scope: int
 
 val reinit: unit -> unit
 
-type 'a tbl
+type 'a tbl [@@deriving sexp_of]
 (** ['a tbl] represents association tables from identifiers to values
    of type ['a].
 

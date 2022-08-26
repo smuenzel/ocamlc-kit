@@ -140,6 +140,8 @@ and method_privacy =
   | Mpublic
   | Mprivate of field_kind
 
+[@@deriving sexp_of]
+
 (* Variance *)
 (* Variance forms a product lattice of the following partial orders:
      0 <= may_pos <= pos
@@ -323,6 +325,7 @@ type class_type =
     Cty_constr of Path.t * type_expr list * class_type
   | Cty_signature of class_signature
   | Cty_arrow of arg_label * type_expr * class_type
+[@@deriving sexp_of]
 
 type class_declaration =
   { cty_params: type_expr list;
@@ -333,7 +336,7 @@ type class_declaration =
     cty_loc: Location.t;
     cty_attributes: Parsetree.attributes;
     cty_uid: Uid.t;
- }
+  } [@@deriving sexp_of]
 
 type class_type_declaration =
   { clty_params: type_expr list;
@@ -343,13 +346,14 @@ type class_type_declaration =
     clty_loc: Location.t;
     clty_attributes: Parsetree.attributes;
     clty_uid: Uid.t;
-  }
+  } [@@deriving sexp_of]
 
 (* Type expressions for the module language *)
 
 type visibility =
   | Exported
   | Hidden
+[@@deriving sexp_of]
 
 type module_type =
     Mty_ident of Path.t
@@ -403,6 +407,8 @@ and ext_status =
   | Text_next                      (* not first constructor of an extension *)
   | Text_exception                 (* an exception *)
 
+[@@deriving sexp_of]
+
 
 (* Constructor and record label descriptions inserted held in typing
    environments *)
@@ -430,6 +436,8 @@ and constructor_tag =
   | Cstr_unboxed                        (* Constructor of an unboxed type *)
   | Cstr_extension of Path.t * bool     (* Extension constructor
                                            true if a constant false if a block*)
+
+[@@deriving sexp_of]
 
 let equal_tag t1 t2 =
   match (t1, t2) with
@@ -470,7 +478,7 @@ type label_description =
     lbl_loc: Location.t;
     lbl_attributes: Parsetree.attributes;
     lbl_uid: Uid.t;
-   }
+  } [@@deriving sexp_of]
 
 let rec bound_value_identifiers = function
     [] -> []

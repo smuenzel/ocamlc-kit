@@ -122,9 +122,13 @@ let is_constructor_typath p =
   | Regular _ -> false
   | _ -> true
 
-module T = struct
-  type nonrec t = t
+module T' = struct
+  type nonrec t = t [@@deriving sexp_of]
   let compare = compare
+  let equal a b = (compare a b) = 0
+  let hash = Hashtbl.hash
+  let output _ _ = failwith "Path.output: not yet implemented"
+  let print = print
 end
-module Set = Set.Make(T)
-module Map = Map.Make(T)
+
+include Identifiable.Make(T')

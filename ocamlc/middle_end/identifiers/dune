@@ -2,5 +2,6 @@
   (name middle_end_identifiers)
   (package ocamlc_kit)
   (libraries utils identifiers compiler_lambda compiler_clambda)
-  (flags :standard -w -9)
+  (flags :standard -open Sexplib.Std -w -9)
+  (preprocess (pps ppx_sexp_conv))
   )

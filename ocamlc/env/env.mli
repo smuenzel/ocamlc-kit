@@ -54,7 +54,7 @@ type address =
   | Aident of Ident.t
   | Adot of address * int
 
-type t
+type t [@@deriving sexp_of]
 
 val empty: t
 val initial: t

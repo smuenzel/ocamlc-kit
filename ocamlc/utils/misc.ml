@@ -15,15 +15,7 @@
 
 (* Errors *)
 
-exception Fatal_error
-
-let fatal_errorf fmt =
-  Format.kfprintf
-    (fun _ -> raise Fatal_error)
-    Format.err_formatter
-    ("@?>> Fatal error: " ^^ fmt ^^ "@.")
-
-let fatal_error msg = fatal_errorf "%s" msg
+include Fatal_error
 
 (* Exceptions *)
 
@@ -209,25 +201,7 @@ module Stdlib = struct
       | Exit -> None
   end
 
-  module String = struct
-    include String
-    module Set = Set.Make(String)
-    module Map = Map.Make(String)
-    module Tbl = Hashtbl.Make(struct
-      include String
-      let hash = Hashtbl.hash
-    end)
-
-    let for_all f t =
-      let len = String.length t in
-      let rec loop i =
-        i = len || (f t.[i] && loop (i + 1))
-      in
-      loop 0
-
-    let print ppf t =
-      Format.pp_print_string ppf t
-  end
+  module String = Utils_string
 
   external compare : 'a -> 'a -> int = "%compare"
 end
@@ -871,7 +845,7 @@ type filepath = string
 type modname = string
 type crcs = (modname * Digest.t option) list
 
-type alerts = string Stdlib.String.Map.t
+type alerts = string Stdlib.String.Map.t [@@deriving sexp_of]
 
 module Magic_number = struct
   type native_obj_config = {

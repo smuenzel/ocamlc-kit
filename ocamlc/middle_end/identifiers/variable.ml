@@ -22,10 +22,10 @@ type t = {
   name : string;
   name_stamp : int;
   (** [name_stamp]s are unique within any given compilation unit. *)
-}
+} [@@deriving sexp_of]
 
 include Identifiable.Make (struct
-  type nonrec t = t
+  type nonrec t = t [@@deriving sexp_of]
 
   let compare t1 t2 =
     if t1 == t2 then 0

@@ -22,7 +22,7 @@
 type project_closure = {
   set_of_closures : Variable.t; (** must yield a set of closures *)
   closure_id : Closure_id.t;
-}
+} [@@deriving sexp_of]
 
 (** The selection of one closure given another closure in the same set of
     closures.  See more detailed documentation below on [set_of_closures].
@@ -32,7 +32,7 @@ type move_within_set_of_closures = {
   closure : Variable.t;  (** must yield a closure *)
   start_from : Closure_id.t;
   move_to : Closure_id.t;
-}
+} [@@deriving sexp_of]
 
 (** The selection from a closure of a variable bound by said closure.
     In other words, access to a function's environment.  Also see more
@@ -41,7 +41,7 @@ type project_var = {
   closure : Variable.t;  (** must yield a closure *)
   closure_id : Closure_id.t;
   var : Var_within_closure.t;
-}
+} [@@deriving sexp_of]
 
 val print_project_closure
    : Format.formatter

@@ -181,6 +181,7 @@ module T = struct
   type codegen_option =
     | Reduce_code_size
     | No_CSE
+  [@@deriving sexp_of]
 
   type fundecl =
     { fun_name: string;
@@ -189,7 +190,7 @@ module T = struct
       fun_codegen_options : codegen_option list;
       fun_poll: Lambda.poll_attribute;
       fun_dbg : Debuginfo.t;
-    }
+    } [@@deriving sexp_of]
 
   type data_item =
       Cdefine_symbol of string
@@ -204,10 +205,12 @@ module T = struct
     | Cstring of string
     | Cskip of int
     | Calign of int
+  [@@deriving sexp_of]
 
   type phrase =
       Cfunction of fundecl
     | Cdata of data_item list
+  [@@deriving sexp_of]
 
 end
 

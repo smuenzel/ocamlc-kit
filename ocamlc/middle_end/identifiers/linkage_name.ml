@@ -17,10 +17,10 @@
 [@@@ocaml.warning "+a-4-9-30-40-41-42-66"]
 open! Int_replace_polymorphic_compare
 
-type t = string
+type t = string [@@deriving sexp_of]
 
 include Identifiable.Make (struct
-  include String
+  include Misc.Stdlib.String
   let hash = Hashtbl.hash
   let print ppf t = Format.pp_print_string ppf t
   let output chan t = output_string chan t

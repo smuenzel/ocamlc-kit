@@ -155,3 +155,4 @@ type preallocated_constant = {
 
 type with_constants =
   ulambda * preallocated_block list * preallocated_constant list
+[@@deriving sexp_of]

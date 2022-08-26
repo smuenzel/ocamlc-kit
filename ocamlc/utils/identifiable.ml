@@ -15,7 +15,7 @@
 (**************************************************************************)
 
 module type Thing = sig
-  type t
+  type t [@@deriving sexp_of]
 
   include Hashtbl.HashedType with type t := t
   include Map.OrderedType with type t := t
@@ -30,6 +30,8 @@ module type Set = sig
     with type elt = T.t
      and type t = Set.Make (T).t
 
+  val sexp_of_t : t -> Sexplib.Sexp.t
+
   val output : out_channel -> t -> unit
   val print : Format.formatter -> t -> unit
   val to_string : t -> string
@@ -42,6 +44,8 @@ module type Map = sig
   include Map.S
     with type key = T.t
      and type 'a t = 'a Map.Make (T).t
+
+  val sexp_of_t : ('a -> Sexplib.Sexp.t) -> 'a t -> Sexplib.Sexp.t
 
   val of_list : (key * 'a) list -> 'a t
 
@@ -85,7 +89,7 @@ module type Tbl = sig
 end
 
 module Pair (A : Thing) (B : Thing) : Thing with type t = A.t * B.t = struct
-  type t = A.t * B.t
+  type t = A.t * B.t [@@deriving sexp_of]
 
   let compare (a1, b1) (a2, b2) =
     let c = A.compare a1 a2 in
@@ -119,7 +123,7 @@ module Make_map (T : Thing) = struct
               Format.asprintf "Map.disjoint_union %a => %a <> %a"
                 T.print id print v1 print v2
           in
-          Misc.fatal_error err
+          Fatal_error.fatal_error err
         else Some v1)
       m1 m2
 
@@ -173,6 +177,12 @@ module Make_map (T : Thing) = struct
         in
         add v set m)
       map empty
+
+  let sexp_of_t sexp_of_a t =
+    let s = to_rev_seq t in
+    let res = ref [] in
+    Seq.iter (fun a -> res := a :: !res) s;
+    [%sexp_of: (T.t * a) list] !res
 end
 
 module Make_set (T : Thing) = struct
@@ -195,6 +205,9 @@ module Make_set (T : Thing) = struct
     | t :: q -> List.fold_left (fun acc e -> add e acc) (singleton t) q
 
   let map f s = of_list (List.map f (elements s))
+
+  let sexp_of_t t =
+    elements t |> [%sexp_of: T.t list]
 end
 
 module Make_tbl (T : Thing) = struct

@@ -25,6 +25,7 @@ open Local_store
 type type_replacement =
   | Path of Path.t
   | Type_function of { params : type_expr list; body : type_expr }
+[@@deriving sexp_of]
 
 type t =
   { types: type_replacement Path.Map.t;
@@ -32,7 +33,7 @@ type t =
     modtypes: module_type Path.Map.t;
     for_saving: bool;
     loc: Location.t option;
-  }
+  } [@@deriving sexp_of]
 
 let identity =
   { types = Path.Map.empty;
@@ -441,6 +442,7 @@ type scoping =
   | Keep
   | Make_local
   | Rescope of int
+[@@deriving sexp_of]
 
 module Lazy_types = struct
 
@@ -487,6 +489,8 @@ module Lazy_types = struct
   and functor_parameter =
     | Unit
     | Named of Ident.t option * modtype
+
+  [@@deriving sexp_of]
 
 end
 open Lazy_types

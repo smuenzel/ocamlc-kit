@@ -762,12 +762,14 @@ and 'a class_infos =
     ci_attributes: attributes;
    }
 
+[@@deriving sexp_of]
+
 type implementation = {
   structure: structure;
   coercion: module_coercion;
   signature: Types.signature;
   shape: Shape.t;
-}
+} [@@deriving sexp_of]
 (** A typechecked implementation including its module structure, its exported
     signature, and a coercion of the module against that signature.
 

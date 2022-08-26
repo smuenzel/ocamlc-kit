@@ -169,4 +169,6 @@ and raise_kind = Lambda.raise_kind =
   | Raise_reraise
   | Raise_notrace
 
+[@@deriving sexp_of]
+
 val equal : primitive -> primitive -> bool

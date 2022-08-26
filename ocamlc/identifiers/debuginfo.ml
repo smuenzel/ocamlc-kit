@@ -83,6 +83,7 @@ module Scoped_location = struct
     | Loc_known of
         { loc : Location.t;
           scopes : scopes; }
+  [@@deriving sexp_of]
 
   let of_location ~scopes loc =
     if Location.is_none loc then

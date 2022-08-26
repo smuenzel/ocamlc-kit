@@ -17,7 +17,7 @@
 
 open Types
 
-type t
+type t [@@deriving sexp_of]
 
 (*
    Substitutions are used to translate a type from one context to
@@ -128,6 +128,8 @@ module Lazy : sig
   and functor_parameter =
     | Unit
     | Named of Ident.t option * modtype
+
+  [@@deriving sexp_of]
 
 
   val of_module_decl : Types.module_declaration -> module_decl

@@ -49,5 +49,11 @@ type typath =
 val constructor_typath: t -> typath
 val is_constructor_typath: t -> bool
 
-module Map : Map.S with type key = t
-module Set : Set.S with type elt = t
+module Map : sig
+  include Map.S with type key = t
+  val sexp_of_t : ('a -> Sexplib.Sexp.t) -> 'a t -> Sexplib.Sexp.t
+end
+module Set : sig
+  include Set.S with type elt = t
+  val sexp_of_t : t -> Sexplib.Sexp.t
+end

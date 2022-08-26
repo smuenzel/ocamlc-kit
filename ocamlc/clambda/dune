@@ -1,8 +1,9 @@
 (library
   (name compiler_clambda)
-  (package ocamlc_kit)
+  (public_name ocamlc_kit.internal.compiler_clambda)
   (wrapped false)
-  (libraries compiler_parsing compiler_lambda identifiers typing_types)
-  (flags :standard -w -9)
+  (libraries compiler_parsing compiler_lambda identifiers typing_types sexplib)
+  (flags :standard -w -9 -open Sexplib.Std)
+  (preprocess (pps ppx_sexp_conv))
   )
 

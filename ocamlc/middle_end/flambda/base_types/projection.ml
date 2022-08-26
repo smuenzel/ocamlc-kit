@@ -22,19 +22,19 @@ open! Int_replace_polymorphic_compare
 type project_closure = {
   set_of_closures : Variable.t;
   closure_id : Closure_id.t;
-}
+} [@@deriving sexp_of]
 
 type move_within_set_of_closures = {
   closure : Variable.t;
   start_from : Closure_id.t;
   move_to : Closure_id.t;
-}
+} [@@deriving sexp_of]
 
 type project_var = {
   closure : Variable.t;
   closure_id : Closure_id.t;
   var : Var_within_closure.t;
-}
+} [@@deriving sexp_of]
 
 let compare_project_var
       ({ closure = closure1; closure_id = closure_id1; var = var1; }
@@ -96,9 +96,10 @@ type t =
   | Project_closure of project_closure
   | Move_within_set_of_closures of move_within_set_of_closures
   | Field of int * Variable.t
+[@@deriving sexp_of]
 
 include Identifiable.Make (struct
-  type nonrec t = t
+  type nonrec t = t [@@deriving sexp_of]
 
   let compare t1 t2 =
     match t1, t2 with

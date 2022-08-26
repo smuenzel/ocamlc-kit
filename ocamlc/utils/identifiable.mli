@@ -22,7 +22,7 @@
 *)
 
 module type Thing = sig
-  type t
+  type t [@@deriving sexp_of]
 
   include Hashtbl.HashedType with type t := t
   include Map.OrderedType with type t := t
@@ -39,6 +39,8 @@ module type Set = sig
     with type elt = T.t
      and type t = Set.Make (T).t
 
+  val sexp_of_t : t -> Sexplib.Sexp.t
+
   val output : out_channel -> t -> unit
   val print : Format.formatter -> t -> unit
   val to_string : t -> string
@@ -51,6 +53,8 @@ module type Map = sig
   include Map.S
     with type key = T.t
      and type 'a t = 'a Map.Make (T).t
+
+  val sexp_of_t : ('a -> Sexplib.Sexp.t) -> 'a t -> Sexplib.Sexp.t
 
   val of_list : (key * 'a) list -> 'a t
 
@@ -100,7 +104,7 @@ module type Tbl = sig
 end
 
 module type S = sig
-  type t
+  type t [@@deriving sexp_of]
 
   module T : Thing with type t = t
   include Thing with type t := T.t

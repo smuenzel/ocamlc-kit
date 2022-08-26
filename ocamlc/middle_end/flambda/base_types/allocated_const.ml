@@ -26,6 +26,7 @@ type t =
   | Immutable_float_array of float list
   | String of string
   | Immutable_string of string
+[@@deriving sexp_of]
 
 let compare_floats x1 x2 =
   (* It is important to compare the bit patterns here, so as not to

@@ -13,13 +13,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type mutable_flag = Asttypes.mutable_flag
+type mutable_flag = Asttypes.mutable_flag [@@deriving sexp_of]
 
-type immediate_or_pointer = Lambda.immediate_or_pointer
+type immediate_or_pointer = Lambda.immediate_or_pointer [@@deriving sexp_of]
 
-type initialization_or_assignment = Lambda.initialization_or_assignment
+type initialization_or_assignment =
+  Lambda.initialization_or_assignment [@@deriving sexp_of]
 
-type is_safe = Lambda.is_safe
+type is_safe = Lambda.is_safe [@@deriving sexp_of]
 
 type boxed =
   | Boxed
@@ -29,6 +30,7 @@ type memory_access_size =
   | Sixteen
   | Thirty_two
   | Sixty_four
+[@@deriving sexp_of]
 
 type primitive =
   | Pread_symbol of string
@@ -164,5 +166,7 @@ and raise_kind = Lambda.raise_kind =
   | Raise_regular
   | Raise_reraise
   | Raise_notrace
+
+[@@deriving sexp_of]
 
 let equal (x: primitive) (y: primitive) = x = y

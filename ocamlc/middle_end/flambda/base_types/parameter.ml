@@ -23,7 +23,7 @@ open! Int_replace_polymorphic_compare
 
 type parameter = {
   var : Variable.t;
-}
+} [@@deriving sexp_of]
 
 let wrap var = { var }
 
@@ -31,7 +31,7 @@ let var p = p.var
 
 module M =
   Identifiable.Make (struct
-    type t = parameter
+    type t = parameter [@@deriving sexp_of]
 
     let compare { var = var1 } { var = var2 } =
       Variable.compare var1 var2

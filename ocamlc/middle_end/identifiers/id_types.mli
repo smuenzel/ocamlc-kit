@@ -21,7 +21,7 @@
 (** Generic identifier type *)
 module type BaseId =
 sig
-  type t
+  type t [@@deriving sexp_of]
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val hash : t -> int
