@@ -56,7 +56,7 @@ open Asttypes
     Note on mutability: TBD.
  *)
 type type_expr [@@deriving sexp_of]
-type row_desc
+type row_desc [@@deriving sexp_of]
 type row_field [@@deriving sexp_of]
 type field_kind
 type commutable
@@ -360,11 +360,11 @@ module Uid = Shape.Uid
 
 (* Sets and maps of methods and instance variables *)
 
-module MethSet : Set.S with type elt = string
-module VarSet : Set.S with type elt = string
+module MethSet : Misc.Stdlib.Set.S with type elt = string
+module VarSet : Misc.Stdlib.Set.S with type elt = string
 
-module Meths : Map.S with type key = string
-module Vars  : Map.S with type key = string
+module Meths : Misc.Stdlib.Map.S with type key = string
+module Vars  : Misc.Stdlib.Map.S with type key = string
 
 (* Value descriptions *)
 
@@ -557,6 +557,7 @@ type class_type =
     Cty_constr of Path.t * type_expr list * class_type
   | Cty_signature of class_signature
   | Cty_arrow of arg_label * type_expr * class_type
+[@@deriving sexp_of]
 
 type class_declaration =
   { cty_params: type_expr list;

@@ -90,6 +90,20 @@ val protect_refs : ref_and_value list -> (unit -> 'a) -> 'a
 *)
 
 module Stdlib : sig
+  module Set : sig
+    module type S = sig
+      include Set.S
+      val sexp_of_t : t -> Sexplib.Sexp.t
+    end
+  end
+
+  module Map : sig
+    module type S = sig
+      include Map.S
+      val sexp_of_t : ('a -> Sexplib.Sexp.t) -> 'a t -> Sexplib.Sexp.t
+    end
+  end
+
   module List : sig
     type 'a t = 'a list
 

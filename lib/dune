@@ -13,6 +13,7 @@
     compiler_env
     compiler_lambda
     compiler_parsing
+    compiler_typedtree
     identifiers
     linear_format
     middle_end_closure

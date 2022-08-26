@@ -20,13 +20,13 @@ open Types
 
 (* Value expressions for the core language *)
 
-type partial = Partial | Total
+type partial = Partial | Total [@@deriving sexp_of]
 
-type attribute = Parsetree.attribute
-type attributes = attribute list
+type attribute = Parsetree.attribute [@@deriving sexp_of]
+type attributes = attribute list [@@deriving sexp_of]
 
-type value = Value_pattern
-type computation = Computation_pattern
+type value = Value_pattern [@@deriving sexp_of]
+type computation = Computation_pattern [@@deriving sexp_of]
 
 type _ pattern_category =
 | Value : value pattern_category
@@ -620,12 +620,14 @@ and 'a class_infos =
     ci_attributes: attribute list;
    }
 
+[@@deriving sexp_of]
+
 type implementation = {
   structure: structure;
   coercion: module_coercion;
   signature: Types.signature;
   shape: Shape.t;
-}
+} [@@deriving sexp_of]
 
 
 (* Auxiliary functions over the a.s.t. *)

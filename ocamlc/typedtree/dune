@@ -3,5 +3,6 @@
    (public_name ocamlc_kit.internal.compiler_typedtree)
    (wrapped false)
    (libraries utils compiler_parsing typing_types cmi_format compiler_env identifiers)
-   (flags :standard -w -9)
+   (flags :standard -w -9 -open Sexplib.Std)
+   (preprocess (pps ppx_sexp_conv))
    )

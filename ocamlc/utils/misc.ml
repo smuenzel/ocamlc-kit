@@ -88,6 +88,20 @@ let rec split_last = function
       (hd :: lst, last)
 
 module Stdlib = struct
+  module Set = struct
+    module type S = sig
+      include Set.S
+      val sexp_of_t : t -> Sexplib.Sexp.t
+    end
+  end
+
+  module Map = struct
+    module type S = sig
+      include Map.S
+      val sexp_of_t : ('a -> Sexplib.Sexp.t) -> 'a t -> Sexplib.Sexp.t
+    end
+  end
+
   module List = struct
     type 'a t = 'a list
 
