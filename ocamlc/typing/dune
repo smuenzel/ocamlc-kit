@@ -1,8 +1,9 @@
 (library
    (name typing)
-   (package ocamlc_kit)
+   (public_name ocamlc_kit.internal.typing)
    (wrapped false)
-   (libraries utils compiler_parsing typing_types cmi_format compiler_env compiler_typedtree cmt_format identifiers)
-   (flags :standard -w -9)
+   (libraries utils compiler_parsing typing_types cmi_format compiler_env compiler_typedtree cmt_format identifiers sexplib)
+   (flags :standard -w -9 -open Sexplib.Std)
    (modules_without_implementation annot)
+   (preprocess (pps ppx_sexp_conv))
    )

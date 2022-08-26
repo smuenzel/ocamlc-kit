@@ -18,7 +18,7 @@
 open Types
 open Format
 
-type position = First | Second
+type position = First | Second [@@deriving sexp_of]
 
 let swap_position = function
   | First -> Second
@@ -28,11 +28,11 @@ let print_pos ppf = function
   | First -> fprintf ppf "first"
   | Second -> fprintf ppf "second"
 
-type expanded_type = { ty: type_expr; expanded: type_expr }
+type expanded_type = { ty: type_expr; expanded: type_expr } [@@deriving sexp_of]
 
 let trivial_expansion ty = { ty; expanded = ty }
 
-type 'a diff = { got: 'a; expected: 'a }
+type 'a diff = { got: 'a; expected: 'a } [@@deriving sexp_of]
 
 let map_diff f r =
   (* ordering is often meaningful when dealing with type_expr *)
@@ -51,10 +51,12 @@ type 'a escape_kind =
   | Module_type of Path.t
   | Equation of 'a
   | Constraint
+[@@deriving sexp_of]
 
 type 'a escape =
   { kind : 'a escape_kind;
     context : type_expr option }
+[@@deriving sexp_of]
 
 let map_escape f esc =
   {esc with kind = match esc.kind with
@@ -72,12 +74,13 @@ let explain trace f =
   explain (List.rev trace)
 
 (* Type indices *)
-type unification = private Unification
+type unification = private Unification [@@deriving sexp_of]
 type comparison  = private Comparison
 
 type fixed_row_case =
   | Cannot_be_closed
   | Cannot_add_tags of string list
+[@@deriving sexp_of]
 
 type 'variety variant =
   (* Common *)
@@ -90,6 +93,7 @@ type 'variety variant =
   (* Equality & Moregen *)
   | Presence_not_guaranteed_for : position * string -> comparison variant
   | Openness : position (* Always [Second] for Moregen *) -> comparison variant
+[@@deriving sexp_of]
 
 type 'variety obj =
   (* Common *)
@@ -97,6 +101,7 @@ type 'variety obj =
   | Abstract_row : position -> _ obj
   (* Unification *)
   | Self_cannot_be_closed : unification obj
+[@@deriving sexp_of]
 
 type ('a, 'variety) elt =
   (* Common *)
@@ -108,11 +113,12 @@ type ('a, 'variety) elt =
       (* Could move [Incompatible_fields] into [obj] *)
   (* Unification & Moregen; included in Equality for simplicity *)
   | Rec_occur : type_expr * type_expr -> ('a, _) elt
+[@@deriving sexp_of]
 
-type ('a, 'variety) t = ('a, 'variety) elt list
+type ('a, 'variety) t = ('a, 'variety) elt list [@@deriving sexp_of]
 
-type 'variety trace = (type_expr,     'variety) t
-type 'variety error = (expanded_type, 'variety) t
+type 'variety trace = (type_expr,     'variety) t [@@deriving sexp_of]
+type 'variety error = (expanded_type, 'variety) t [@@deriving sexp_of]
 
 let map_elt (type variety) f : ('a, variety) elt -> ('b, variety) elt = function
   | Diff x -> Diff (map_diff f x)
@@ -141,7 +147,7 @@ let swap_elt (type variety) : ('a, variety) elt -> ('a, variety) elt = function
 
 let swap_trace e = List.map swap_elt e
 
-type unification_error = { trace : unification error } [@@unboxed]
+type unification_error = { trace : unification error } [@@unboxed] [@@deriving sexp_of]
 
 type equality_error =
   { trace : comparison error;

@@ -55,9 +55,9 @@ open Asttypes
 
     Note on mutability: TBD.
  *)
-type type_expr
+type type_expr [@@deriving sexp_of]
 type row_desc
-type row_field
+type row_field [@@deriving sexp_of]
 type field_kind
 type commutable
 
@@ -164,6 +164,8 @@ and abbrev_memo =
 
   | Mlink of abbrev_memo ref
   (** Abbreviations can be found after this indirection *)
+
+[@@deriving sexp_of]
 
 (** [commutable] is a flag appended to every arrow type.
 

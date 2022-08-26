@@ -116,7 +116,8 @@ val swap_trace : ('a, 'variety) t -> ('a, 'variety) t
     traces are nonempty; we ensure that through three smart constructors with
     matching names. *)
 
-type unification_error = private { trace : unification error } [@@unboxed]
+type unification_error =
+  private { trace : unification error } [@@unboxed] [@@deriving sexp_of]
 
 type equality_error = private
   { trace : comparison error;

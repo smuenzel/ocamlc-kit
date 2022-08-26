@@ -47,7 +47,7 @@
 
 (library
    (name utils)
-   (package ocamlc_kit)
+   (public_name ocamlc_kit.internal.utils)
    (wrapped false)
    (libraries sexplib)
    (flags :standard -open Sexplib.Std)

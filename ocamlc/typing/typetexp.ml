@@ -46,6 +46,7 @@ type error =
   | Method_mismatch of string * type_expr * type_expr
   | Opened_object of Path.t option
   | Not_an_object of type_expr
+[@@deriving sexp_of]
 
 exception Error of Location.t * Env.t * error
 exception Error_forward of Location.error

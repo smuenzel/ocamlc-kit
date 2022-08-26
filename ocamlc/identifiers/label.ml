@@ -1,1 +1,1 @@
-type t = string
+type t = string [@@deriving sexp_of]
