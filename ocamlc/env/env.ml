@@ -628,6 +628,7 @@ let empty_structure =
 type unbound_value_hint =
   | No_hint
   | Missing_rec of Location.t
+[@@deriving sexp_of]
 
 type lookup_error =
   | Unbound_value of Longident.t * unbound_value_hint
@@ -650,13 +651,15 @@ type lookup_error =
   | Generative_used_as_applicative of Longident.t
   | Illegal_reference_to_recursive_module
   | Cannot_scrape_alias of Longident.t * Path.t
+[@@deriving sexp_of]
 
 type error =
   | Missing_module of Location.t * Path.t * Path.t
   | Illegal_value_name of Location.t * string
   | Lookup_error of Location.t * t * lookup_error
+[@@deriving sexp_of]
 
-exception Error of error
+exception Error of error [@@deriving sexp_of]
 
 let error err = raise (Error err)
 

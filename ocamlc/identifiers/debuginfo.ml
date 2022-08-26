@@ -113,6 +113,11 @@ type item = {
 
 type t = item list [@@deriving sexp_of]
 
+let sexp_of_t t =
+  if false
+  then sexp_of_t t
+  else List []
+
 type alloc_dbginfo_item =
   { alloc_words : int;
     alloc_dbg : t }
