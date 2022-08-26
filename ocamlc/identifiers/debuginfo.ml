@@ -24,10 +24,12 @@ module Scoped_location = struct
     | Sc_module_definition
     | Sc_class_definition
     | Sc_method_definition
+  [@@deriving sexp_of]
 
   type scopes =
     | Empty
     | Cons of {item: scope_item; str: string; str_fun: string}
+  [@@deriving sexp_of]
 
   let str_fun = function
     | Empty -> "(fun)"
@@ -106,9 +108,9 @@ type item = {
   dinfo_end_bol: int;
   dinfo_end_line: int;
   dinfo_scopes: Scoped_location.scopes;
-}
+} [@@deriving sexp_of]
 
-type t = item list
+type t = item list [@@deriving sexp_of]
 
 type alloc_dbginfo_item =
   { alloc_words : int;

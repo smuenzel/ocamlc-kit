@@ -18,13 +18,14 @@
 open Misc
 open Parsetree
 
-type boxed_integer = Pnativeint | Pint32 | Pint64
+type boxed_integer = Pnativeint | Pint32 | Pint64 [@@deriving sexp_of]
 
 type native_repr =
   | Same_as_ocaml_repr
   | Unboxed_float
   | Unboxed_integer of boxed_integer
   | Untagged_int
+[@@deriving sexp_of]
 
 type description =
   { prim_name: string;         (* Name of primitive  or C function *)
@@ -33,6 +34,7 @@ type description =
     prim_native_name: string;  (* Name of C function for the nat. code gen. *)
     prim_native_repr_args: native_repr list;
     prim_native_repr_res: native_repr }
+[@@deriving sexp_of]
 
 type error =
   | Old_style_float_with_native_repr_attribute

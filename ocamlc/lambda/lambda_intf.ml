@@ -27,10 +27,12 @@ module T = struct
     | Ostype_win32
     | Ostype_cygwin
     | Backend_type
+  [@@deriving sexp_of]
 
   type immediate_or_pointer = Type_based_optimization.immediate_or_pointer =
     | Immediate
     | Pointer
+  [@@deriving sexp_of]
 
   type initialization_or_assignment =
     | Assignment
@@ -41,10 +43,12 @@ module T = struct
     (* Initialization of roots only. Compiles to a simple store.
        No checks are done to preserve GC invariants.  *)
     | Root_initialization
+  [@@deriving sexp_of]
 
   type is_safe =
     | Safe
     | Unsafe
+  [@@deriving sexp_of]
 
   type primitive =
     | Pbytes_to_string
@@ -199,6 +203,7 @@ module T = struct
     | Raise_regular
     | Raise_reraise
     | Raise_notrace
+  [@@deriving sexp_of]
 
   type structured_constant =
       Const_base of constant

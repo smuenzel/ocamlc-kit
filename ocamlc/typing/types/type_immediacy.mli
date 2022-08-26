@@ -22,6 +22,7 @@ type t =
   | Always_on_64bits
   (** We know for sure that values of this type are always immediate
       on 64 bit platforms. For other platforms, we know nothing. *)
+[@@deriving sexp_of]
 
 module Violation : sig
   type t =

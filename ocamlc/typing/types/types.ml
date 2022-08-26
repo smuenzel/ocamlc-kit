@@ -19,13 +19,11 @@ open Asttypes
 
 (* Type expressions for the core language *)
 
-type transient_expr =
+type type_expr =
   { mutable desc: type_desc;
     mutable level: int;
     mutable scope: int;
     id: int }
-
-and type_expr = transient_expr
 
 and type_desc =
     Tvar of string option
@@ -79,6 +77,14 @@ and _ commutable_gen =
     Cok      : [> `some] commutable_gen
   | Cunknown : [> `none] commutable_gen
   | Cvar : {mutable commu: any commutable_gen} -> [> `var] commutable_gen
+
+[@@deriving sexp_of]
+
+type transient_expr = type_expr =
+  { mutable desc: type_desc;
+    mutable level: int;
+    mutable scope: int;
+    id: int }
 
 module TransientTypeOps = struct
   type t = type_expr
@@ -155,7 +161,8 @@ and method_privacy =
  *)
 
 module Variance = struct
-  type t = int
+  (* CR smuenzel: better sexp representation *)
+  type t = int [@@deriving sexp_of]
   type f = May_pos | May_neg | May_weak | Inj | Pos | Neg | Inv
   let single = function
     | May_pos -> 1
@@ -203,7 +210,7 @@ module Variance = struct
 end
 
 module Separability = struct
-  type t = Ind | Sep | Deepsep
+  type t = Ind | Sep | Deepsep [@@deriving sexp_of]
   type signature = t list
   let eq (m1 : t) m2 = (m1 = m2)
   let rank = function
@@ -290,6 +297,8 @@ and constructor_arguments =
   | Cstr_tuple of type_expr list
   | Cstr_record of label_declaration list
 
+[@@deriving sexp_of]
+
 type extension_constructor =
   { ext_type_path: Path.t;
     ext_type_params: type_expr list;
@@ -305,6 +314,8 @@ and type_transparence =
     Type_public      (* unrestricted expansion *)
   | Type_new         (* "new" type *)
   | Type_private     (* private type *)
+
+[@@deriving sexp_of]
 
 (* Type expressions for the class language *)
 

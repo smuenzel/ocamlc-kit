@@ -17,6 +17,7 @@ type t =
     Pident of Ident.t
   | Pdot of t * string
   | Papply of t * t
+[@@deriving sexp_of]
 
 let rec same p1 p2 =
   p1 == p2

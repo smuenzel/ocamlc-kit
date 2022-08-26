@@ -49,7 +49,9 @@
    (name utils)
    (package ocamlc_kit)
    (wrapped false)
-   (libraries)
+   (libraries sexplib)
+   (flags :standard -open Sexplib.Std)
+   (preprocess (pps ppx_sexp_conv))
    )
 
 

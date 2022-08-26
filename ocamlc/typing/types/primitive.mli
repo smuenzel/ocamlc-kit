@@ -15,7 +15,7 @@
 
 (* Description of primitive functions *)
 
-type boxed_integer = Pnativeint | Pint32 | Pint64
+type boxed_integer = Pnativeint | Pint32 | Pint64 [@@deriving sexp_of]
 
 (* Representation of arguments/result for the native code version
    of a primitive *)
@@ -24,6 +24,7 @@ type native_repr =
   | Unboxed_float
   | Unboxed_integer of boxed_integer
   | Untagged_int
+[@@deriving sexp_of]
 
 type description = private
   { prim_name: string;         (* Name of primitive  or C function *)
@@ -32,6 +33,7 @@ type description = private
     prim_native_name: string;  (* Name of C function for the nat. code gen. *)
     prim_native_repr_args: native_repr list;
     prim_native_repr_res: native_repr }
+[@@deriving sexp_of]
 
 (* Invariant [List.length d.prim_native_repr_args = d.prim_arity] *)
 

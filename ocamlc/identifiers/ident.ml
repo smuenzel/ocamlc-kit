@@ -25,6 +25,7 @@ type t =
   | Predef of { name: string; stamp: int }
       (* the stamp is here only for fast comparison, but the name of
          predefined identifiers is always unique. *)
+[@@deriving sexp_of]
 
 (* A stamp of 0 denotes a persistent identifier *)
 

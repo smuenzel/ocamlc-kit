@@ -17,9 +17,10 @@
 type repr =
   | Int32 of int32
   | Int64 of int64
+[@@deriving sexp_of]
 
 module type S = sig
-  type t
+  type t [@@deriving sexp_of]
   val zero : t
   val one : t
   val minus_one : t
@@ -67,6 +68,7 @@ let size = Sys.word_size
 
 module Int32 = struct
   include Int32
+  let sexp_of_t = [%sexp_of: int32]
   let of_int_exn =
     match Sys.word_size with (* size of [int] *)
     | 32 ->
@@ -89,6 +91,7 @@ end
 
 module Int64 = struct
   include Int64
+  let sexp_of_t = [%sexp_of: int64]
   let of_int_exn = Int64.of_int
   let of_int64 x = x
   let to_int64 x = x

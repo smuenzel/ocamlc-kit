@@ -42,8 +42,9 @@ type constant =
      Suffixes [g-z][G-Z] are accepted by the parser.
      Suffixes are rejected by the typechecker.
   *)
+[@@deriving sexp_of]
 
-type location_stack = Location.t list
+type location_stack = Location.t list [@@deriving sexp_of]
 
 (** {1 Extension points} *)
 
@@ -1020,6 +1021,8 @@ and module_binding =
      pmb_loc: Location.t;
     }
 (** Values of type [module_binding] represents [module X = ME] *)
+
+[@@deriving sexp_of]
 
 (** {1 Toplevel} *)
 

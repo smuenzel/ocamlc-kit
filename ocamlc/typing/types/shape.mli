@@ -19,6 +19,7 @@ module Uid : sig
     | Item of { comp_unit: string; id: int }
     | Internal
     | Predef of string
+  [@@deriving sexp_of]
 
   val reinit : unit -> unit
 

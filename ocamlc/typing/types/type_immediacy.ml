@@ -16,6 +16,7 @@ type t =
   | Unknown
   | Always
   | Always_on_64bits
+[@@deriving sexp_of]
 
 module Violation = struct
   type t =

@@ -526,6 +526,8 @@ and constructor_arguments =
   | Cstr_tuple of type_expr list
   | Cstr_record of label_declaration list
 
+[@@deriving sexp_of]
+
 type extension_constructor =
   {
     ext_type_path: Path.t;

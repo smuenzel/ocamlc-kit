@@ -15,8 +15,16 @@
 
 open Lexing
 
+type position = Lexing.position =
+  { pos_fname : string
+  ; pos_lnum : int
+  ; pos_bol : int
+  ; pos_cnum : int
+  } [@@deriving sexp_of]
+
 type t = Warnings.loc =
   { loc_start: position; loc_end: position; loc_ghost: bool }
+[@@deriving sexp_of]
 
 let in_file = Warnings.ghost_loc_in_file
 

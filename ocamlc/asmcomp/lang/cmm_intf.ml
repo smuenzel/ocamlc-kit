@@ -21,6 +21,7 @@ module T = struct
     | Addr
     | Int
     | Float
+  [@@deriving sexp_of]
 
   (* - [Val] denotes a valid OCaml value: either a pointer to the beginning
        of a heap block, an infix pointer if it is preceded by the correct
@@ -48,7 +49,7 @@ module T = struct
        into, invalidating the value of the [Addr] variable.
   *)
 
-  type machtype = machtype_component array
+  type machtype = machtype_component array [@@deriving sexp_of]
 
 
   type exttype =
@@ -58,18 +59,21 @@ module T = struct
     | XFloat                              (**r double-precision FP number  *)
   (** A variant of [machtype] used to describe arguments
       to external C functions *)
+  [@@deriving sexp_of]
 
   type integer_comparison = Lambda.integer_comparison =
     | Ceq | Cne | Clt | Cgt | Cle | Cge
+  [@@deriving sexp_of]
 
   (* With floats [not (x < y)] is not the same as [x >= y] due to NaNs,
      so we provide additional comparisons to represent the negations.*)
   type float_comparison = Lambda.float_comparison =
     | CFeq | CFneq | CFlt | CFnlt | CFgt | CFngt | CFle | CFnle | CFge | CFnge
+  [@@deriving sexp_of]
 
   type label = int
 
-  type rec_flag = Nonrecursive | Recursive
+  type rec_flag = Nonrecursive | Recursive [@@deriving sexp_of]
 
   type phantom_defining_expr =
     (* CR-soon mshinwell: Convert this to [Targetint.OCaml.t] (or whatever the
@@ -97,6 +101,7 @@ module T = struct
     | Cphantom_block of { tag : int; fields : Backend_var.t list; }
     (** The phantom-let-bound variable points at a block with the given
         structure. *)
+  [@@deriving sexp_of]
 
   type memory_chunk =
       Byte_unsigned
@@ -105,11 +110,11 @@ module T = struct
     | Sixteen_signed
     | Thirtytwo_unsigned
     | Thirtytwo_signed
-    | Word_int                           (* integer or pointer outside heap *)
-    | Word_val                           (* pointer inside heap or encoded int *)
+    | Word_int                      (* integer or pointer outside heap *)
+    | Word_val                      (* pointer inside heap or encoded int *)
     | Single
-    | Double                             (* word-aligned 64-bit float
-                                            see PR#10433 *)
+    | Double                        (* word-aligned 64-bit float see PR#10433 *)
+  [@@deriving sexp_of]
 
   and operation =
       Capply of machtype

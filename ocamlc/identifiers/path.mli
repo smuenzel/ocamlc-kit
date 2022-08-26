@@ -19,6 +19,7 @@ type t =
     Pident of Ident.t
   | Pdot of t * string
   | Papply of t * t
+[@@deriving sexp_of]
 
 val same: t -> t -> bool
 val compare: t -> t -> int

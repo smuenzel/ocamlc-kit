@@ -19,6 +19,7 @@ module Uid = struct
     | Item of { comp_unit: string; id: int }
     | Internal
     | Predef of string
+  [@@deriving sexp_of]
 
   include Identifiable.Make(struct
     type nonrec t = t

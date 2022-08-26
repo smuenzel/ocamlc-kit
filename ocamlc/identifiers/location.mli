@@ -26,7 +26,7 @@ type t = Warnings.loc = {
   loc_start: Lexing.position;
   loc_end: Lexing.position;
   loc_ghost: bool;
-}
+} [@@deriving sexp_of]
 
 (** Note on the use of Lexing.position in this module.
    If [pos_fname = ""], then use [!input_name] instead.

@@ -15,7 +15,7 @@
 
 (* Identifiers (unique names) *)
 
-type t
+type t [@@deriving sexp_of]
 
 include Identifiable.S with type t := t
 (* Notes:

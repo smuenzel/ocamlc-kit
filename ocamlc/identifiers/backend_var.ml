@@ -16,14 +16,14 @@
 
 include Ident
 
-type backend_var = t
+type backend_var = t [@@deriving sexp_of]
 
 module Provenance = struct
   type t = {
     module_path : Path.t;
     location : Debuginfo.t;
     original_ident : Ident.t;
-  }
+  } [@@deriving sexp_of]
 
   let print ppf { module_path; location; original_ident; } =
     let printf fmt = Format.fprintf ppf fmt in
@@ -55,6 +55,7 @@ module With_provenance = struct
         var : backend_var;
         provenance : Provenance.t;
       }
+  [@@deriving sexp_of]
 
   let create ?provenance var =
     match provenance with

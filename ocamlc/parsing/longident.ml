@@ -17,6 +17,7 @@ type t =
     Lident of string
   | Ldot of t * string
   | Lapply of t * t
+[@@deriving sexp_of]
 
 let rec flat accu = function
     Lident s -> s :: accu

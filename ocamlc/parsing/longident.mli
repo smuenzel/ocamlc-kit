@@ -27,6 +27,7 @@ type t =
     Lident of string
   | Ldot of t * string
   | Lapply of t * t
+[@@deriving sexp_of]
 
 val flatten: t -> string list
 val unflatten: string list -> t option

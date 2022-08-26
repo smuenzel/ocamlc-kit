@@ -47,9 +47,9 @@
    (name compiler_parsing)
    (public_name ocamlc_kit.internal.compiler_parsing)
    (wrapped false)
-   (libraries utils identifiers)
-   (flags :standard -w -9)
-   (modules_without_implementation asttypes parsetree)
+   (libraries utils identifiers sexplib)
+   (flags :standard -w -9 -open Sexplib.Std)
+   (preprocess (pps ppx_sexp_conv))
    )
 
 (ocamllex

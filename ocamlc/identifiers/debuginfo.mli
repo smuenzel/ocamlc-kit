@@ -14,7 +14,7 @@
 (**************************************************************************)
 
 module Scoped_location : sig
-  type scopes
+  type scopes [@@deriving sexp_of]
   val string_of_scopes : scopes -> string
 
   val empty_scopes : scopes
@@ -44,9 +44,9 @@ type item = private {
   dinfo_end_bol: int;
   dinfo_end_line: int;
   dinfo_scopes: Scoped_location.scopes;
-}
+} [@@deriving sexp_of]
 
-type t = item list
+type t = item list [@@deriving sexp_of]
 
 type alloc_dbginfo_item =
   { alloc_words : int;

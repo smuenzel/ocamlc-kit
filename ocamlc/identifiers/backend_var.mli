@@ -19,10 +19,10 @@
 
 include module type of struct include Ident end
 
-type backend_var = t
+type backend_var = t [@@deriving sexp_of]
 
 module Provenance : sig
-  type t
+  type t [@@deriving sexp_of]
 
   val create
      : module_path:Path.t
@@ -39,7 +39,7 @@ end
 
 module With_provenance : sig
   (** Values of type [t] should be used for variables in binding position. *)
-  type t
+  type t [@@deriving sexp_of]
 
   val print : Format.formatter -> t -> unit
 

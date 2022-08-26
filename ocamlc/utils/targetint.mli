@@ -29,7 +29,7 @@
 
 *)
 
-type t
+type t [@@deriving sexp_of]
 (** The type of target integers. *)
 
 val zero : t
