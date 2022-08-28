@@ -22,7 +22,7 @@ type position = First | Second
 val swap_position : position -> position
 val print_pos : Format.formatter -> position -> unit
 
-type expanded_type = { ty: type_expr; expanded: type_expr }
+type expanded_type = { ty: type_expr; expanded: type_expr } [@@deriving sexp_of]
 
 (** [trivial_expansion ty] creates an [expanded_type] whose expansion is also
     [ty].  Usually, you want [Ctype.expand_type] instead, since the expansion
@@ -161,6 +161,7 @@ module Subtype : sig
   type nonrec error = private
     { trace             : error_trace
     ; unification_trace : unification error }
+  [@@deriving sexp_of]
 
   val error :
     trace:error_trace -> unification_trace:unification_error_trace -> error

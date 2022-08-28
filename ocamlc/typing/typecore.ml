@@ -34,11 +34,12 @@ type type_forcing_context =
   | Assert_condition
   | Sequence_left_hand_side
   | When_guard
+[@@deriving sexp_of]
 
 type type_expected = {
   ty: type_expr;
   explanation: type_forcing_context option;
-}
+} [@@deriving sexp_of]
 
 type to_unpack = {
   tu_name: string Location.loc;
@@ -47,7 +48,7 @@ type to_unpack = {
 }
 
 module Datatype_kind = struct
-  type t = Record | Variant
+  type t = Record | Variant [@@deriving sexp_of]
 
   let type_name = function
     | Record -> "record"
@@ -63,11 +64,12 @@ type wrong_name = {
   kind: Datatype_kind.t;
   name: string loc;
   valid_names: string list;
-}
+} [@@deriving sexp_of]
 
 type wrong_kind_context =
   | Pattern
   | Expression of type_forcing_context option
+[@@deriving sexp_of]
 
 type wrong_kind_sort =
   | Constructor
@@ -75,6 +77,7 @@ type wrong_kind_sort =
   | Boolean
   | List
   | Unit
+[@@deriving sexp_of]
 
 let wrong_kind_sort_of_constructor (lid : Longident.t) =
   match lid with
@@ -92,6 +95,7 @@ type existential_restriction =
   | In_class_args (** or in class arguments *)
   | In_class_def  (** or in [class c = let ... in ...] *)
   | In_self_pattern (** or in self pattern *)
+[@@deriving sexp_of]
 
 type error =
   | Constructor_arity_mismatch of Longident.t * int * int
@@ -165,6 +169,7 @@ type error =
   | Missing_type_constraint
   | Wrong_expected_kind of wrong_kind_sort * wrong_kind_context * type_expr
   | Expr_not_a_record_type of type_expr
+[@@deriving sexp_of]
 
 exception Error of Location.t * Env.t * error
 exception Error_forward of Location.error

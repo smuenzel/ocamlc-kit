@@ -177,17 +177,19 @@ let swap_unification_error ({trace} : unification_error) =
 module Subtype = struct
   type 'a elt =
     | Diff of 'a diff
+  [@@deriving sexp_of]
 
-  type 'a t = 'a elt list
+  type 'a t = 'a elt list [@@deriving sexp_of]
 
-  type trace       = type_expr t
-  type error_trace = expanded_type t
+  type trace       = type_expr t [@@deriving sexp_of]
+  type error_trace = expanded_type t [@@deriving sexp_of]
 
   type unification_error_trace = unification error (** To avoid shadowing *)
 
   type nonrec error =
     { trace             : error_trace
-    ; unification_trace : unification error }
+    ; unification_trace : unification error
+    } [@@deriving sexp_of]
 
   let error ~trace ~unification_trace =
   assert (trace <> []);
