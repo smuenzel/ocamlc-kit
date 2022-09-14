@@ -84,6 +84,9 @@ Working version
 
 ### Compiler user-interface and warnings:
 
+- #11530: Include kinds in kind mismatch error message.
+  (Leonhard Markert, review by Gabriel Scherer and Florian Angeletti)
+
 - #10818: Preserve integer literal formatting in type hint.
   (Leonhard Markert, review by Gabriel Scherer and Florian Angeletti)
 
@@ -93,7 +96,14 @@ Working version
 - #10911: Improve the location reported by parenthesized assert expressions
   (Fabian Hemmer, review by Gabriel Scherer)
 
+- #1391, #7645, #3922: Add an early error when compiling different
+  modules with mismatching -for-pack
+  (Pierre Chambart and Vincent Laviron, review by Mark Shinwell)
+
 ### Internal/compiler-libs changes:
+- #11027: Separate typing counter-examples from type_pat into retype_pat;
+  type_pat is no longer in CPS.
+  (Jacques Garrigue and Takafumi Saikawa, review by Gabriel Scherer)
 
 - #11018: Clean up Types.Variance, adding a description of the lattice used,
   and defining explicitly composition.
@@ -264,6 +274,12 @@ OCaml 5.0
   the lock.
   (Guillaume Munch-Maccagnoni, review by Sadiq Jaffer, Xavier Leroy and
   Gabriel Scherer)
+
+- #11223: The serialization format of custom blocks changed in 4.08,
+  but the deserializer would still support the pre-4.08 format.  OCaml
+  5.x removed support for this old format; provide a clear error message
+  in this case.
+  (Hugo Heuzard, review by Gabriel Scherer)
 
 ### Code generation and optimizations:
 
@@ -502,6 +518,9 @@ OCaml 5.0
 - #11487: Thwart FMA test optimization during configure
   (William Hu, review by David Allsopp and Sébastien Hinderer)
 
+- #11097: Build native-code compilers on NetBSD/aarch64
+  (Kate Deplaix, review by Anil Madhavapeddy)
+
 ### Bug fixes:
 
 - #10768, #11340: Fix typechecking regression when combining first class
@@ -591,6 +610,9 @@ OCaml 5.0
   (Christiano Haesbaert and Gabriel Scherer,
    review by Xavier Leroy,
    report by Jan Midtgaard and Tom Kelly)
+
+- #11516, #11524: Fix the `deprecated_mutable` attribute.
+  (Chris Casinghino, review by Nicolás Ojeda Bär and Florian Angeletti)
 
 OCaml 4.14.0 (28 March 2022)
 ----------------------------
